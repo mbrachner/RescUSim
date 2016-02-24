@@ -10,6 +10,13 @@ r = RescUSimCpp.Helicopter("Test")
 r.setName("Neu")
 print r.getName()
 
-sim = RescUSimCpp.Simulator();
+print wd.shape
+weather = RescUSimCpp.Weather(wd,wsp,hs);
+print "{0}, {1}".format(weather.wdAt(5,20,2),wd[5,20,2]);
+print "{0}, {1}".format(weather.wspAt(5,20,2),wsp[5,20,2]);
+print "{0}, {1}".format(weather.hsAt(5,20,2),hs[5,20,2]);
+
+sim = RescUSimCpp.Simulator(weather);
 sim.addStationaryRU(r);
+
 

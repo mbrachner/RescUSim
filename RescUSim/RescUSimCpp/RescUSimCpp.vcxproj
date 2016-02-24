@@ -131,13 +131,12 @@
     <ClCompile Include="RescueUnits.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="Bindings.cpp" />
+    <ClCompile Include="Weather.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RescueUnits.h" />
     <ClInclude Include="Simulator.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
+    <ClInclude Include="Weather.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

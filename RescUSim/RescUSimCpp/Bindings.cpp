@@ -13,11 +13,16 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 	rescueUnit
 		.def(py::init<const std::string &>())
 		.def("setName", &RescueUnit::setName)
-		.def("getName", &RescueUnit::getName);
+		.def("getName", &RescueUnit::getName)
+		.def("setPos", &RescueUnit::setPos)
+		.def("getPos", &RescueUnit::getPos)
+		;
 	py::class_<Helicopter>(m, "Helicopter", rescueUnit)
 		.def(py::init<const std::string &>());
 	py::class_<ERV>(m, "ERV", rescueUnit)
-		.def(py::init<const std::string &>());
+		.def(py::init<const std::string &>())
+
+			;
 
 	py::class_<Weather>(m, "Weather")
 		.def("__init__", [](Weather &m, py::buffer wd, py::buffer wsp, py::buffer hs) {

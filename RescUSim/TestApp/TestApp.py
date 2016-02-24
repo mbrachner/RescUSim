@@ -17,6 +17,11 @@ print "{0}, {1}".format(weather.wspAt(5,20,2),wsp[5,20,2]);
 print "{0}, {1}".format(weather.hsAt(5,20,2),hs[5,20,2]);
 
 sim = RescUSimCpp.Simulator(weather);
+r.setPos(10,20);
+print r.getPos();
 sim.addStationaryRU(r);
+sim.addStationaryRU(RescUSimCpp.ERV("ERV1"))
+sim.addStationaryRU(RescUSimCpp.ERV("ERV2"))
+
 
 

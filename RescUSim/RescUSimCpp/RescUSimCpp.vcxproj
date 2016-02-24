@@ -129,9 +129,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="RescueUnits.cpp" />
+    <ClCompile Include="Simulator.cpp" />
+    <ClCompile Include="Bindings.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="RescueUnits.h" />
+    <ClInclude Include="Simulator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

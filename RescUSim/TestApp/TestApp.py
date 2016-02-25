@@ -7,9 +7,7 @@ wd = f['arr_0']
 wsp = f['arr_1']
 hs = f['arr_2']
 
-r = RescUSimCpp.Helicopter("Test")
-r.setName("Neu")
-print r.getName()
+
 
 print wd.shape
 #weather = RescUSimCpp.Weather(wd,wsp,hs);
@@ -18,24 +16,25 @@ print wd.shape
 #print "{0}, {1}".format(weather.hsAt(5,20,2),hs[5,20,2]);
 
 sim = RescUSimCpp.Simulator(RescUSimCpp.Weather(wd,wsp,hs));
-r.setPos(10,20);
-print r.getPos();
-sim.addStationaryRU(r);
-#erv1 = RescUSimCpp.ERV("ERV1");
-#sim.addStationaryRU(erv1)
-#erv2 = RescUSimCpp.ERV("ERV2");
-#sim.addStationaryRU(erv2)
-sim.addStationaryRU(RescUSimCpp.ERV("ERV1"))
-sim.addStationaryRU(RescUSimCpp.ERV("ERV2"))
+r=RescUSimCpp.Helicopter("Heli1")
+r.setPos(357309.0, 131195.0)
+r.setSpeed(72.2222222)
+sim.addStationaryRU(r)
+#sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2"));
+#sim.addStationaryRU(RescUSimCpp.Helicopter("Heli3"));
+#sim.addStationaryRU(RescUSimCpp.ERV("ERV1"))
+#sim.addStationaryRU(RescUSimCpp.ERV("ERV2"))
 
-pois = np.random.rand(10,2)*100;
-print pois
-sim.addPoi(pois)
+minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
+grid=np.mgrid[0:maxx-minx:10000, 0:maxy-miny:10000]
+grid = np.transpose(grid,axes=[1,2,0]).reshape(grid.shape[1]*grid.shape[2],grid.shape[0])
+#grid = np.random.rand(10,2)*100;
+print grid
+sim.addPoi(grid)
+
 start = time.clock()
-sum = 0
-for x in range (0,1000):
-    sim.simulate()
+sum = sim.simulate()
 end = time.clock()
-print (end-start)/1000
-#print sum
+print (end-start)
+print sum
 

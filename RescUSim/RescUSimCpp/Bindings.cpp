@@ -7,9 +7,11 @@
 
 namespace py = pybind11;
 
+PYBIND11_DECLARE_HOLDER_TYPE(T, std::shared_ptr<T>);
+
 PYBIND11_PLUGIN(RescUSimCpp) {
 	py::module m("RescUSimCpp");
-	py::class_<RescueUnit> rescueUnit(m, "RescueUnit");
+	py::class_<RescueUnit, std::shared_ptr<RescueUnit>> rescueUnit(m, "RescueUnit");
 	rescueUnit
 		.def(py::init<const std::string &>())
 		.def("setName", &RescueUnit::setName)
@@ -17,9 +19,9 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("setPos", &RescueUnit::setPos)
 		.def("getPos", &RescueUnit::getPos)
 		;
-	py::class_<Helicopter>(m, "Helicopter", rescueUnit)
+	py::class_<Helicopter, std::shared_ptr<Helicopter>>(m, "Helicopter", rescueUnit)
 		.def(py::init<const std::string &>());
-	py::class_<ERV>(m, "ERV", rescueUnit)
+	py::class_<ERV, std::shared_ptr<ERV>>(m, "ERV", rescueUnit)
 		.def(py::init<const std::string &>())
 
 			;
@@ -39,7 +41,16 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 
 	py::class_<Simulator>(m, "Simulator")
 		.def(py::init<const Weather &>())
+		.def("simulate", &Simulator::simulate)
 		.def("addStationaryRU", &Simulator::addStationaryRU)
+		.def("addPoi", [] (Simulator &sim, py::buffer poiList){
+			py::buffer_info infoPoiList = poiList.request();
+			for (size_t i = 0; i < infoPoiList.shape[0]; i++) {
+				sim.addPoi(std::make_tuple(
+					((double *)infoPoiList.ptr)[i*2], ((double *)infoPoiList.ptr)[i*2+1])
+				);
+			}
+		})
 		;
 	return m.ptr();
 }

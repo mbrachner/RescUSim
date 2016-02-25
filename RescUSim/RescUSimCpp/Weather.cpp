@@ -19,6 +19,10 @@ float Weather::wspAt(size_t scenario, size_t x, size_t y) {
 float Weather::hsAt(size_t scenario, size_t x, size_t y) {
 	return hs[y + dimY*x + dimX*dimY*scenario];
 }
+
+size_t Weather::getNumScenarios() { return numScenarios; }
+
+
 Weather::~Weather()
 {
 }

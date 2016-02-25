@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <tuple>
+#include <memory>
+#include "Weather.h"
 
 class RescueUnit {
 public:
@@ -9,7 +11,7 @@ public:
 	const std::string &getName();
 	void setPos(double posX_, double posY_);
 	const std::tuple<double, double> getPos();
-	virtual void calculateDistanceMatrix() = 0;
+	virtual double getTravelTimeTo(std::tuple<double, double> point, Weather weather);
 
 private:
 	std::string name;
@@ -19,13 +21,13 @@ private:
 class Helicopter: public RescueUnit {
 public:
 	Helicopter(const std::string &name) : RescueUnit(name) { }
-	void calculateDistanceMatrix();
+	virtual double getTravelTimeTo(std::tuple<double, double> point, Weather weather);
 };
 
 class ERV : public RescueUnit {
 public:
 	ERV(const std::string &name) : RescueUnit(name) { }
-	void calculateDistanceMatrix();
+	virtual double getTravelTimeTo(std::tuple<double, double> point, Weather weather);
 
 
 };

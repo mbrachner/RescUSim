@@ -6,6 +6,7 @@ public:
 	float wdAt(size_t scenario, size_t x, size_t y);
 	float wspAt(size_t scenario, size_t x, size_t y);
 	float hsAt(size_t scenario, size_t x, size_t y);
+	size_t getNumScenarios();
 	~Weather();
 
 private:

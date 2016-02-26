@@ -42,6 +42,18 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 	py::class_<Simulator>(m, "Simulator")
 		.def(py::init<const Weather &>())
 		.def("simulate", &Simulator::simulate)
+		.def("getResCap", [](Simulator &sim) {
+			//std::cout << (*sim.getPois()).size << std::endl;
+			auto result = py::array(py::buffer_info(
+				sim.getResCap(),            /* Pointer to data (nullptr -> ask NumPy to allocate!) */
+				sizeof(double),     /* Size of one item */
+				py::format_descriptor<double>::value(), /* Buffer format */
+				2,          /* How many dimensions? */
+				{ sim.getNumPois(), sim.getWeather().getNumScenarios() },  /* Number of elements for each dimension */
+				{ sim.getWeather().getNumScenarios()*sizeof(double), sizeof(double) }  /* Strides for each dimension */
+			));
+			return result;
+		})
 		.def("addStationaryRU", &Simulator::addStationaryRU)
 		.def("addPoi", [] (Simulator &sim, py::buffer poiList){
 			py::buffer_info infoPoiList = poiList.request();

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <math.h>
 
-RescueUnit::RescueUnit(const std::string & name) :name(name), pos({ 0,0 }), speed(0)
+RescueUnit::RescueUnit(const std::string & name) :name(name), pos({ 0,0 }), speed(0), pickuptime(0)
 {
 }
 
@@ -16,6 +16,13 @@ const std::string & RescueUnit::getName() { return name; }
 void RescueUnit::setPos(double posX_, double posY_) { pos = { posX_, posY_ }; }
 
 void RescueUnit::setSpeed(double speed_) { speed = speed_; }
+
+void RescueUnit::setPickupTime(double val){	pickuptime = val;}
+
+double RescueUnit::getPickupTime()
+{
+	return pickuptime;
+}
 
 double RescueUnit::getSpeed() {return speed;}
 

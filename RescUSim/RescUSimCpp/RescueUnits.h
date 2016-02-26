@@ -12,6 +12,8 @@ public:
 	const std::string &getName();
 	void setPos(double posX_, double posY_);
 	void setSpeed(double speed);
+	void setPickupTime(double val);
+	double getPickupTime();
 	double getSpeed();
 	const std::tuple<double, double> getPosTuple();
 	const Position getPos();
@@ -21,21 +23,27 @@ public:
 protected:
 	const int DISTSTEP = 10000;
 
+
 private:
 	std::string name;
 	Position pos;
 	double speed;
+	double pickuptime;
 };
 
 class Helicopter: public RescueUnit {
 public:
-	Helicopter(const std::string &name) : RescueUnit(name) { }
+	Helicopter(const std::string &name) : RescueUnit(name) { 
+		setPickupTime (3);
+	}
 	virtual double getTravelTimeTo(Position point, size_t scenario, Weather weather);
 };
 
 class ERV : public RescueUnit {
 public:
-	ERV(const std::string &name) : RescueUnit(name) { }
+	ERV(const std::string &name) : RescueUnit(name) {
+		setPickupTime(5);
+	}
 	virtual double getTravelTimeTo(Position point, size_t scenario, Weather weather);
 
 

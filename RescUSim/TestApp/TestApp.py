@@ -27,8 +27,9 @@ sim.addStationaryRU(r)
 
 minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
 grid=np.mgrid[0:maxx-minx:10000, 0:maxy-miny:10000]
-grid = np.transpose(grid,axes=[1,2,0]).reshape(grid.shape[1]*grid.shape[2],grid.shape[0])
+grid = np.array(np.transpose(grid,axes=[1,2,0]).reshape(grid.shape[1]*grid.shape[2],grid.shape[0]))
 #grid = np.random.rand(10,2)*100;
+print grid.shape
 print grid
 sim.addPoi(grid)
 
@@ -36,5 +37,9 @@ start = time.clock()
 sum = sim.simulate()
 end = time.clock()
 print (end-start)
-print sum
+resCap = sim.getResCap()
+print resCap.shape
+#print resCap[:,0]
+#print resCap[:,1]
+print resCap[np.all(grid[:]==[10000.,40000.],axis=1)][0,234]
 

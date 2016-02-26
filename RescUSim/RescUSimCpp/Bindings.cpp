@@ -45,12 +45,13 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("addStationaryRU", &Simulator::addStationaryRU)
 		.def("addPoi", [] (Simulator &sim, py::buffer poiList){
 			py::buffer_info infoPoiList = poiList.request();
+			size_t rowStride = infoPoiList.strides[0] / infoPoiList.itemsize;
+			size_t colStride = infoPoiList.strides[1] / infoPoiList.itemsize;
 			for (size_t i = 0; i < infoPoiList.shape[0]; i++) {
-				sim.addPoi(Position(
-					*((double *)infoPoiList.ptr + i * 2),
-					*((double *)infoPoiList.ptr + i * 2 + 1)
-					))
-				;
+
+				double px = *((double *)infoPoiList.ptr + i * rowStride);
+				double py = *((double *)infoPoiList.ptr + i * rowStride + colStride);
+				sim.addPoi(Position(px,py));
 			}
 		})
 		;

@@ -7,17 +7,18 @@
 
 class RescueUnit {
 public:
+	RescueUnit();
 	RescueUnit(const std::string &name);
-	void setName(const std::string &name_);
+	RescueUnit & setName(const std::string &name_);
 	const std::string &getName();
-	void setPos(double posX_, double posY_);
-	void setSpeed(double speed);
-	void setPickupTime(double val);
+	RescueUnit & setPos(double posX_, double posY_);
+	RescueUnit & setSpeed(double speed);
+	RescueUnit & setPickupTime(double val);
 	double getPickupTime();
 	double getSpeed();
 	const std::tuple<double, double> getPosTuple();
 	const Position getPos();
-	virtual double getTravelTimeTo(Position point, size_t scenario, Weather weather)=0;
+	virtual double getTravelTimeTo(Position dest, size_t scenario, Weather weather)=0;
 
 
 protected:
@@ -33,18 +34,13 @@ private:
 
 class Helicopter: public RescueUnit {
 public:
-	Helicopter(const std::string &name) : RescueUnit(name) { 
-		setPickupTime (3);
-	}
-	virtual double getTravelTimeTo(Position point, size_t scenario, Weather weather);
+	Helicopter(const std::string &name);
+	double getTravelTimeTo(Position dest, size_t scenario, Weather weather);
 };
 
 class ERV : public RescueUnit {
 public:
-	ERV(const std::string &name) : RescueUnit(name) {
-		setPickupTime(5);
-	}
-	virtual double getTravelTimeTo(Position point, size_t scenario, Weather weather);
-
+	ERV(const std::string &name);
+	double getTravelTimeTo(Position dest, size_t scenario, Weather weather);
 
 };

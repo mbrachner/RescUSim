@@ -93,6 +93,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Users\mbrachner\Anaconda\include;C:\Users\mbrachner\Source\Repos\pybind11\include</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\Users\mbrachner\Anaconda\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -122,6 +123,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>C:\Users\mbrachner\Anaconda\include;C:\Users\mbrachner\Source\Repos\pybind11\include</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

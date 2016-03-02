@@ -5,11 +5,11 @@
 #include <algorithm>
 #include <math.h>
 
-RescueUnit::RescueUnit() :name("RU"), pos({ 0,0 }), speed(0), pickuptime(0)
+RescueUnit::RescueUnit() :name("RU"), pos({ 0,0 }), speed(0), pickupTime(0), mobilizationTime(0), maxCapacity(std::numeric_limits<unsigned int>::max())
 {
 }
 
-RescueUnit::RescueUnit(const std::string & name) :name(name), pos({ 0,0 }), speed(0), pickuptime(0)
+RescueUnit::RescueUnit(const std::string & name) :name(name), pos({ 0,0 }), speed(0), pickupTime(0), mobilizationTime(0), maxCapacity(std::numeric_limits<unsigned int>::max())
 {
 }
 
@@ -23,22 +23,44 @@ RescueUnit & RescueUnit::setPos(double posX_, double posY_) { pos = { posX_, pos
 RescueUnit & RescueUnit::setSpeed(double speed_) { speed = speed_; return *this;
 }
 
-RescueUnit & RescueUnit::setPickupTime(double val){	pickuptime = val; return *this;
+RescueUnit & RescueUnit::setPickupTime(double val){	pickupTime = val; return *this;
+}
+
+RescueUnit & RescueUnit::setMobilizationTime(double val)
+{
+	mobilizationTime = val;
+	return *this;
+}
+
+RescueUnit & RescueUnit::setMaxCapacity(unsigned int val)
+{
+	maxCapacity = val;
+	return *this;
+}
+
+double RescueUnit::getMobilizationTime()
+{
+	return mobilizationTime;
 }
 
 double RescueUnit::getPickupTime()
 {
-	return pickuptime;
+	return pickupTime;
 }
 
 double RescueUnit::getSpeed() {return speed;}
+
+unsigned int RescueUnit::getMaxCapacity()
+{
+	return maxCapacity;
+}
 
 const std::tuple<double, double> RescueUnit::getPosTuple()
 {
 	return std::make_tuple(pos.x, pos.y);
 }
 
-const Position RescueUnit::getPos()
+Position RescueUnit::getPos()
 {
 	return pos;
 }
@@ -48,6 +70,8 @@ const Position RescueUnit::getPos()
 Helicopter::Helicopter(const std::string & name):RescueUnit(name)
 {
 	setPickupTime(3);
+	setMobilizationTime(15);
+	setSpeed(72.2222222);
 }
 
 double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
@@ -87,6 +111,8 @@ double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weath
 ERV::ERV(const std::string & name) :RescueUnit(name)
 {	
 	setPickupTime(5);
+	setMobilizationTime(5);
+	setSpeed(10.2889);
 }
 
 double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)

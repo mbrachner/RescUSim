@@ -20,6 +20,10 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("getPos", &RescueUnit::getPos)
 		.def("setSpeed", &RescueUnit::setSpeed)
 		.def("getSpeed", &RescueUnit::getSpeed)
+		.def("setMaxCapacity", &RescueUnit::setMaxCapacity)
+		.def("getMaxCapacity", &RescueUnit::getMaxCapacity)
+		.def("setMobilizationTime", &RescueUnit::setMobilizationTime)
+		.def("getMobilizationTime", &RescueUnit::getMobilizationTime)
 		;
 	py::class_<Helicopter, std::shared_ptr<Helicopter>>(m, "Helicopter", rescueUnit)
 		.def(py::init<const std::string &>());

@@ -25,12 +25,12 @@ print wd.shape
 #print "{0}, {1}".format(weather.hsAt(5,20,2),hs[5,20,2]);
 
 sim = RescUSimCpp.Simulator(RescUSimCpp.Weather(wd,wsp,hs))
-sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0).setSpeed(72.2222222))
-sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0).setSpeed(72.2222222))
+sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0).setMaxCapacity(15))
+sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0).setMaxCapacity(15))
 
-sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0).setSpeed(10.2889))
-sim.addStationaryRU(RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0).setSpeed(10.2889))
-sim.addStationaryRU(RescUSimCpp.ERV("ERV3").setPos(637900.0, 273100.0).setSpeed(10.2889))
+sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0))
+sim.addStationaryRU(RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0))
+sim.addStationaryRU(RescUSimCpp.ERV("ERV3").setPos(637900.0, 273100.0))
 
 
 minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
@@ -65,9 +65,9 @@ m = Basemap(projection='aeqd',lat_0=72,lon_0=29, resolution='l',
 
 m.fillcontinents(color='lightgray',lake_color='blue',zorder=15);
 m.drawcoastlines(zorder=15); 
-m.drawparallels(np.arange(-80.,81.,20.),zorder=0);
+m.drawparallels(np.arange(-80.,81.,20.),zorder=10);
 #m.drawmeridians(np.arange(-180.,181.,20.),zorder=0); 
-m.drawmapboundary(fill_color='white',zorder=0)
+m.drawmapboundary(fill_color='white',zorder=10)
 #m.plot(startpointx,startpointy,marker='*',markersize=15,zorder=20,color='yellow')
 m.plot(357309.0, 131195.0,marker='*',markersize=15,zorder=20,color='yellow')
 m.plot(255000.0, 554000.0,marker='*',markersize=15,zorder=20,color='yellow')
@@ -75,20 +75,23 @@ m.plot(726000.0, 450000.0,marker='v',markersize=15,zorder=20,color='yellow')
 m.plot(723558.0, 345403.0,marker='v',markersize=15,zorder=20,color='yellow')
 m.plot(637900.0, 273100.0,marker='v',markersize=15,zorder=20,color='yellow')
 
-ngrid=grid.reshape(83,59,2)
+grid=grid.reshape(83,59,2)
 resCap=resCap.reshape(83,59,2920)
-cm = ax.pcolormesh(ngrid[:,:,0],ngrid[:,:,1],resCap[:,:,0], vmin=21, vmax=capMax)
+slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/2920.
+#cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],resCap[:,:,0], vmin=21, vmax=capMax,zorder=1)
+cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],slGrid[:,:], vmin=0.95, vmax=1.,zorder=1)
+cbar = fig.colorbar(cm)
 
-def animate(i):
-    cm.set_array(resCap[:-1,:-1,i].ravel())  # update the data
-    return cm,
+#def animate(i):
+#    cm.set_array(resCap[:-1,:-1,i].ravel())  # update the data
+#    return cm,
 
-#Init only required for blitting to give a clean slate.
-def init():
-    cm.set_array(np.array([]))
-    return cm,
+##Init only required for blitting to give a clean slate.
+#def init():
+#    cm.set_array(np.array([]))
+#    return cm,
 
-ani = animation.FuncAnimation(fig, animate, range(0, 2920), init_func=init,blit=False)
+#ani = animation.FuncAnimation(fig, animate, range(0, 2920), init_func=init,blit=False)
 
 fig.tight_layout()
 plt.draw()

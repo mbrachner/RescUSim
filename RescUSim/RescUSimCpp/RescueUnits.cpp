@@ -65,6 +65,14 @@ Position RescueUnit::getPos()
 	return pos;
 }
 
+double RescueUnit::getCapacityTo(Position dest, size_t scenario, Weather weather, double timelimit)
+{
+	double travelTime = getTravelTimeTo(dest, scenario, weather);
+	double c = (timelimit - getMobilizationTime() - travelTime) / getPickupTime();
+	c = std::min(std::max(c, 0.), (double)getMaxCapacity());
+	return c;
+}
+
 
 
 Helicopter::Helicopter(const std::string & name):RescueUnit(name)

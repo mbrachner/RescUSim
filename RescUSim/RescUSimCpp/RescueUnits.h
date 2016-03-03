@@ -24,6 +24,7 @@ public:
 	Position getPos();
 
 	virtual double getTravelTimeTo(Position dest, size_t scenario, Weather weather)=0;
+	double getCapacityTo(Position dest, size_t scenario, Weather weather, double timelimit);
 
 
 protected:

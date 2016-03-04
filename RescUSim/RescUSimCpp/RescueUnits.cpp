@@ -4,6 +4,7 @@
 #include "RescueUnits.h"
 #include <algorithm>
 #include <math.h>
+#include "Bounds.h"
 
 RescueUnit::RescueUnit() :name("RU"), pos({ 0,0 }), speed(0), pickupTime(0), mobilizationTime(0), maxCapacity(std::numeric_limits<unsigned int>::max())
 {
@@ -82,6 +83,7 @@ Helicopter::Helicopter(const std::string & name):RescueUnit(name)
 	setSpeed(72.2222222);
 }
 
+#pragma optimize("",off)
 double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
 {
 	Position start = getPos();
@@ -98,8 +100,9 @@ double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weath
 			start.y + step * DISTSTEP * sin(crs)
 		};
 
-		size_t ix = (size_t)(act.x / DISTSTEP);
-		size_t iy = (size_t)(act.y / DISTSTEP);
+
+		size_t ix = (size_t)((act.x-weather.getBounds().minx) / DISTSTEP);
+		size_t iy = (size_t)((act.y-weather.getBounds().miny) / DISTSTEP);
 
 		double wsp = weather.wspAt(scenario, ix, iy);
 		double wd = weather.wdAt(scenario, ix, iy);
@@ -116,6 +119,7 @@ double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weath
 	return t;
 }
 
+#pragma optimize("",off)
 ERV::ERV(const std::string & name) :RescueUnit(name)
 {	
 	setPickupTime(5);
@@ -137,9 +141,10 @@ double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
 			start.x + step * DISTSTEP * cos(crs),
 			start.y + step * DISTSTEP * sin(crs)
 		};
+		
 
-		size_t ix = (size_t)(act.x / DISTSTEP);
-		size_t iy = (size_t)(act.y / DISTSTEP);
+		size_t ix = (size_t)((act.x - weather.getBounds().minx) / DISTSTEP);
+		size_t iy = (size_t)((act.y - weather.getBounds().miny) / DISTSTEP);
 
 		double hs = weather.hsAt(scenario, ix, iy);
 

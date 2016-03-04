@@ -4,7 +4,8 @@
 #include "RescueUnits.h"
 #include "Simulator.h"
 #include "Weather.h"
-#include "common.h"
+#include "Position.h"
+#include "Bounds.h"
 
 namespace py = pybind11;
 
@@ -29,15 +30,18 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def(py::init<const std::string &>());
 	py::class_<ERV, std::shared_ptr<ERV>>(m, "ERV", rescueUnit)
 		.def(py::init<const std::string &>());
+	
+	py::class_<Bounds, std::shared_ptr<Bounds>>(m, "Bounds")
+		.def(py::init<const double, const double, const double, const double>());
 
 	py::class_<Weather>(m, "Weather")
-		.def("__init__", [](Weather &m, py::buffer wd, py::buffer wsp, py::buffer hs) {
+		.def("__init__", [](Weather &m, py::buffer wd, py::buffer wsp, py::buffer hs, Bounds bounds) {
 			py::buffer_info infoWd = wd.request();
 			py::buffer_info infoWsp = wsp.request();
 			py::buffer_info infoHs = hs.request();
 
 			new (&m) Weather((float *)infoWd.ptr, (float *)infoWsp.ptr, (float *)infoHs.ptr,
-				infoWd.shape[0], infoWd.shape[1], infoWd.shape[2]);
+				infoWd.shape[0], infoWd.shape[1], infoWd.shape[2], bounds);
 		})
 		.def("wdAt", &Weather::wdAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("wspAt", &Weather::wspAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
@@ -59,6 +63,7 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 			return result;
 		})
 		.def("addStationaryRU", &Simulator::addStationaryRU)
+		.def("addTemporaryRU", &Simulator::addTemporaryRU)
 		.def("addPoi", [] (Simulator &sim, py::buffer poiList){
 			py::buffer_info infoPoiList = poiList.request();
 			size_t rowStride = infoPoiList.strides[0] / infoPoiList.itemsize;

@@ -13,11 +13,14 @@ public:
 	const std::string &getName();
 	RescueUnit & setPos(double posX_, double posY_);
 	RescueUnit & setSpeed(double speed);
-	RescueUnit & setPickupTime(double val);
+	RescueUnit & setPickupTimeNormVisibility(double val);
+	RescueUnit & setPickupTimeLowVisibility(double val);
 	RescueUnit & setMobilizationTime(double val);
 	RescueUnit & setMaxCapacity(unsigned int val);
 	double getMobilizationTime();
-	double getPickupTime();
+	double getPickupTime(Position dest, size_t scenario, Weather weather);
+	double getPickupTimeNormVisibility();
+	double getPickupTimeLowVisibility();
 	double getSpeed();
 	unsigned int getMaxCapacity();
 	const std::tuple<double, double> getPosTuple();
@@ -35,7 +38,8 @@ private:
 	std::string name;
 	Position pos;
 	double speed;
-	double pickupTime;
+	double pickupTimeNormVisibility;
+	double pickupTimeLowVisibility;
 	double mobilizationTime;
 	unsigned int maxCapacity;
 };

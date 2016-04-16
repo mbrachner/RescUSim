@@ -11,6 +11,7 @@ from time import sleep
 import sqlalchemy as sa
 import datetime
 import pandas as pd
+import Weather
 
 
 def getScenario(hoursFromStart):
@@ -55,25 +56,31 @@ m = Basemap(projection='aeqd',lat_0=72,lon_0=29, resolution='l',
 
 #matplotlib.pyplot.ion();
 
+
+weatherData = Weather.loadWeather(m)
+
+
 numScenarios = 2920
 
-f = np.load("C:\\tmp\\w.npz")
-wd = f['arr_0'][:numScenarios]
-wsp = f['arr_1'][:numScenarios]
-hs = f['arr_2'][:numScenarios]
+#f = np.load("C:\\tmp\\w.npz")
+#wd = f['arr_0'][:numScenarios]
+#wsp = f['arr_1'][:numScenarios]
+#hs = f['arr_2'][:numScenarios]
 
+
+#print wsp[23,4,5],wd[23,4,5],hs[23,4,5]
+print weatherData[23,4,5]
 
 minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
 
-print wd.shape
-#weather = RescUSimCpp.Weather(wd,wsp,hs);
-#print "{0}, {1}".format(weather.wdAt(5,20,2),wd[5,20,2]);
-#print "{0}, {1}".format(weather.wspAt(5,20,2),wsp[5,20,2]);
-#print "{0}, {1}".format(weather.hsAt(5,20,2),hs[5,20,2]);
 
-sim = RescUSimCpp.Simulator(RescUSimCpp.Weather(wd,wsp,hs,RescUSimCpp.Bounds(minx, maxx, miny, maxy)))
-sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0))
-sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0))
+
+weather = RescUSimCpp.Weather(weatherData,RescUSimCpp.Bounds(minx, maxx, miny, maxy))
+print weather.wspAt(1400,4,5),weather.wdAt(1400,4,5),weather.hsAt(1400,4,5),weather.lightAt(1400,4,5);
+
+sim = RescUSimCpp.Simulator(weather)
+#sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0))
+#sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0))
 
 sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0))
 sim.addStationaryRU(RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0))
@@ -132,6 +139,7 @@ m.plot(637900.0, 273100.0,marker='v',markersize=15,zorder=20,color='yellow')
 grid=grid.reshape(83,59,2)
 resCap=resCap.reshape(83,59,numScenarios)
 slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/float(numScenarios)
+slGrid = np.ma.masked_where(slGrid < 0.95, slGrid)
 #cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],resCap[:,:,0], vmin=21, vmax=capMax,zorder=1)
 cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],slGrid[:,:], vmin=0.95, vmax=1.,zorder=1)
 cbar = fig.colorbar(cm)

@@ -1,23 +1,29 @@
 #include "Weather.h"
+#include <iostream>
 
 
-
-Weather::Weather(float * wd, float * wsp, float * hs, size_t numScenarios, size_t dimX, size_t dimY, Bounds bounds)
-	:wd(wd),wsp(wsp),hs(hs), numScenarios(numScenarios), dimX(dimX), dimY(dimY), bounds(bounds)
+Weather::Weather(WeatherData *weatherData, size_t numScenarios, size_t dimX, size_t dimY, Bounds bounds)
+	:weatherData(weatherData), numScenarios(numScenarios), dimX(dimX), dimY(dimY), bounds(bounds)
 {
 	
 }
 
+
 float Weather::wdAt(size_t scenario, size_t x, size_t y) {
-	return wd[y+dimY*x+dimX*dimY*scenario];
+	return weatherData[y + dimY*x + dimX*dimY*scenario].wd;
 }
 
 float Weather::wspAt(size_t scenario, size_t x, size_t y) {
-	return wsp[y + dimY*x + dimX*dimY*scenario];
+	return weatherData[y + dimY*x + dimX*dimY*scenario].wsp;
 }
 
 float Weather::hsAt(size_t scenario, size_t x, size_t y) {
-	return hs[y + dimY*x + dimX*dimY*scenario];
+	return weatherData[y + dimY*x + dimX*dimY*scenario].hs;
+}
+
+bool Weather::lightAt(size_t scenario, size_t x, size_t y)
+{
+	return weatherData[y + dimY*x + dimX*dimY*scenario].light;
 }
 
 size_t Weather::getNumScenarios() { return numScenarios; }

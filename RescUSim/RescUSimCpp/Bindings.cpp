@@ -34,18 +34,17 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 	py::class_<Bounds, std::shared_ptr<Bounds>>(m, "Bounds")
 		.def(py::init<const double, const double, const double, const double>());
 
-	py::class_<Weather>(m, "Weather")
-		.def("__init__", [](Weather &m, py::buffer wd, py::buffer wsp, py::buffer hs, Bounds bounds) {
-			py::buffer_info infoWd = wd.request();
-			py::buffer_info infoWsp = wsp.request();
-			py::buffer_info infoHs = hs.request();
+	py::class_<Weather, std::shared_ptr<Weather>>(m, "Weather")
+		.def("__init__", [](Weather &m, py::buffer wdata, Bounds bounds) {
+			py::buffer_info infoWdata = wdata.request();
 
-			new (&m) Weather((float *)infoWd.ptr, (float *)infoWsp.ptr, (float *)infoHs.ptr,
-				infoWd.shape[0], infoWd.shape[1], infoWd.shape[2], bounds);
+			new (&m) Weather((WeatherData *)infoWdata.ptr,
+				infoWdata.shape[0], infoWdata.shape[1], infoWdata.shape[2], bounds);
 		})
 		.def("wdAt", &Weather::wdAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("wspAt", &Weather::wspAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
-		.def("hsAt", &Weather::hsAt, py::arg("scenario"), py::arg("x"), py::arg("y"));
+		.def("hsAt", &Weather::hsAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
+		.def("lightAt", &Weather::lightAt, py::arg("scenario"), py::arg("x"), py::arg("y"));
 
 	py::class_<Simulator>(m, "Simulator")
 		.def(py::init<const Weather &>())

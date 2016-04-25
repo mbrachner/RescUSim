@@ -69,33 +69,39 @@ numScenarios = 2920
 
 
 #print wsp[23,4,5],wd[23,4,5],hs[23,4,5]
-print weatherData[23,4,5]
+#print weatherData[23,4,5]
 
 minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
 
 
 
 weather = RescUSimCpp.Weather(weatherData,RescUSimCpp.Bounds(minx, maxx, miny, maxy))
+print "Das Wetter: ",
 print weather.wspAt(1400,4,5),weather.wdAt(1400,4,5),weather.hsAt(1400,4,5),weather.lightAt(1400,4,5);
 
 sim = RescUSimCpp.Simulator(weather)
-#sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0))
-#sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0))
+sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0))
+sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0))
 
-sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0))
-sim.addStationaryRU(RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0))
-sim.addStationaryRU(RescUSimCpp.ERV("ERV3").setPos(637900.0, 273100.0))
-
-for c in range(2920):
+#sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0))
+#sim.addStationaryRU(RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0))
+#sim.addStationaryRU(RescUSimCpp.ERV("ERV3").setPos(637900.0, 273100.0))
+scenValid = np.ones ((numScenarios),dtype=np.bool);
+for c in range(0):
     #for n in range(0):
     #    x = float(np.random.randint(minx,maxx))
     #    y = float(np.random.randint(miny,maxy))
     #    sim.addTemporaryRU(RescUSimCpp.ERV("ERV").setPos(x,y),c)
     cs = getScenario(c)
+    scenValid[c] = (len(cs) > 0);
+
     print "Scenario {0}: Adding {1}".format(c, cs.shape)
     for cx,cy in cs:
         sim.addTemporaryRU(RescUSimCpp.ERV("ERV").setPos(cx,cy),c)
 
+
+numValid = len(scenValid[scenValid == True]);
+print ("Valid: %s" % numValid);
 
 minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
 grid=np.mgrid[minx:maxx:10000, miny:maxy:10000]
@@ -130,19 +136,28 @@ m.drawparallels(np.arange(-80.,81.,20.),zorder=10);
 #m.drawmeridians(np.arange(-180.,181.,20.),zorder=0); 
 m.drawmapboundary(fill_color='white',zorder=10)
 #m.plot(startpointx,startpointy,marker='*',markersize=15,zorder=20,color='yellow')
-m.plot(357309.0, 131195.0,marker='*',markersize=15,zorder=20,color='yellow')
-m.plot(255000.0, 554000.0,marker='*',markersize=15,zorder=20,color='yellow')
-m.plot(726000.0, 450000.0,marker='v',markersize=15,zorder=20,color='yellow')
-m.plot(723558.0, 345403.0,marker='v',markersize=15,zorder=20,color='yellow')
-m.plot(637900.0, 273100.0,marker='v',markersize=15,zorder=20,color='yellow')
+m.plot(357309.0, 131195.0,marker='*',markersize=40,zorder=20,color='yellow')
+m.plot(255000.0, 554000.0,marker='*',markersize=40,zorder=20,color='yellow')
+#m.plot(726000.0, 450000.0,marker='v',markersize=15,zorder=20,color='yellow')
+#m.plot(723558.0, 345403.0,marker='v',markersize=15,zorder=20,color='yellow')
+#m.plot(637900.0, 273100.0,marker='v',markersize=15,zorder=20,color='yellow')
 
 grid=grid.reshape(83,59,2)
 resCap=resCap.reshape(83,59,numScenarios)
-slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/float(numScenarios)
-slGrid = np.ma.masked_where(slGrid < 0.95, slGrid)
+resCap=resCap[:,:,scenValid]
+print resCap.shape
+#print ("Valid scenarios shape: %s" % resCap.shape);
+slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/float(numValid)
+serviceLevel = 0.90
+#np.save("C:\\tmp\\sl_aa_full_mit",slGrid)
+slGrid = np.ma.masked_where(slGrid < serviceLevel, slGrid)
+
 #cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],resCap[:,:,0], vmin=21, vmax=capMax,zorder=1)
-cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],slGrid[:,:], vmin=0.95, vmax=1.,zorder=1)
+cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],slGrid[:,:], vmin=serviceLevel, vmax=1.,zorder=1)
 cbar = fig.colorbar(cm)
+for l in cbar.ax.yaxis.get_ticklabels():
+    #l.set_family("Times New Roman")
+    l.set_size(28)
 
 def animate(i):
     cm.set_array(resCap[:-1,:-1,i].ravel())  # update the data

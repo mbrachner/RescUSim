@@ -10,21 +10,24 @@ RescueUnit::RescueUnit() :name("RU"), pos({ 0,0 }), speed(0), pickupTimeNormVisi
 {
 }
 
-RescueUnit::RescueUnit(const std::string & name) :name(name), pos({ 0,0 }), speed(0), pickupTimeNormVisibility(0), pickupTimeLowVisibility(0), mobilizationTime(0), maxCapacity(std::numeric_limits<unsigned int>::max())
+RescueUnit::RescueUnit(const std::string & name) : name(name), pos({ 0,0 }), speed(0), pickupTimeNormVisibility(0), pickupTimeLowVisibility(0), mobilizationTime(0), maxCapacity(std::numeric_limits<unsigned int>::max())
 {
 }
 
-RescueUnit & RescueUnit::setName(const std::string & name_) { name = name_; return *this;  }
+RescueUnit & RescueUnit::setName(const std::string & name_) { name = name_; return *this; }
 
 const std::string & RescueUnit::getName() { return name; }
 
-RescueUnit & RescueUnit::setPos(double posX_, double posY_) { pos = { posX_, posY_ }; return *this;
+RescueUnit & RescueUnit::setPos(double posX_, double posY_) {
+	pos = { posX_, posY_ }; return *this;
 }
 
-RescueUnit & RescueUnit::setSpeed(double speed_) { speed = speed_; return *this;
+RescueUnit & RescueUnit::setSpeed(double speed_) {
+	speed = speed_; return *this;
 }
 
-RescueUnit & RescueUnit::setPickupTimeNormVisibility(double val){	pickupTimeNormVisibility = val; return *this;
+RescueUnit & RescueUnit::setPickupTimeNormVisibility(double val) {
+	pickupTimeNormVisibility = val; return *this;
 }
 
 RescueUnit & RescueUnit::setPickupTimeLowVisibility(double val)
@@ -44,19 +47,79 @@ RescueUnit & RescueUnit::setMaxCapacity(unsigned int val)
 	return *this;
 }
 
+RescueUnit & RescueUnit::setAvailability(double val)
+{
+	availability = val;
+	return *this;
+}
+
 double RescueUnit::getMobilizationTime()
 {
 	return mobilizationTime;
 }
 
-double RescueUnit::getPickupTime(Position pos, size_t scenario, Weather weather)
+
+double Helicopter::getPickupTime(Position pos, size_t scenario, Weather weather)
 {
 	size_t ix = (size_t)((pos.x - weather.getBounds().minx) / DISTSTEP);
 	size_t iy = (size_t)((pos.y - weather.getBounds().miny) / DISTSTEP);
 
-	
-	return  
-		(weather.lightAt(scenario, ix, iy)) ? getPickupTimeNormVisibility() : getPickupTimeLowVisibility();
+
+	if (weather.hsAt(scenario, ix, iy) < 6) {
+		if (weather.lightAt(scenario, ix, iy))
+			return 2;
+		else
+			return 3;
+	}
+	else {
+		if (weather.lightAt(scenario, ix, iy))
+			return 3;
+		else 
+			return 4;
+	}
+}
+
+bool Helicopter::isInterfering()
+{
+	return true;
+}
+
+
+double ERV::getPickupTime(Position pos, size_t scenario, Weather weather)
+{
+	size_t ix = (size_t)((pos.x - weather.getBounds().minx) / DISTSTEP);
+	size_t iy = (size_t)((pos.y - weather.getBounds().miny) / DISTSTEP);
+
+	if (weather.hsAt(scenario, ix, iy) < 2) {
+		if (weather.lightAt(scenario, ix, iy))
+			return 1;
+		else
+			return 2;
+	}
+	else {
+		if (weather.hsAt(scenario, ix, iy) < 4.5) {
+			if (weather.lightAt(scenario, ix, iy))
+				return 2;
+			else
+				return 3;
+		}
+		else {
+			if (weather.hsAt(scenario, ix, iy) < 6) {
+				if (weather.lightAt(scenario, ix, iy))
+					return 4;
+				else
+					return 6;
+			}
+			else {
+				return 200;
+			}
+		}
+	}
+}
+
+bool ERV::isInterfering()
+{
+	return false;
 }
 
 double RescueUnit::getPickupTimeNormVisibility()
@@ -70,6 +133,16 @@ double RescueUnit::getPickupTimeLowVisibility()
 }
 
 double RescueUnit::getSpeed() {return speed;}
+
+double RescueUnit::getAvailability()
+{
+	return availability;
+}
+
+bool RescueUnit::isAvailable(double randomNumber)
+{
+	return randomNumber < getAvailability();
+}
 
 unsigned int RescueUnit::getMaxCapacity()
 {
@@ -101,6 +174,7 @@ Helicopter::Helicopter(const std::string & name):RescueUnit(name)
 	setPickupTimeNormVisibility(3);
 	setPickupTimeLowVisibility(4);
 	setMobilizationTime(15);
+	setAvailability(1.);
 	setSpeed(72.2222222);
 }
 
@@ -145,9 +219,11 @@ ERV::ERV(const std::string & name) :RescueUnit(name)
 {	
 	setPickupTimeNormVisibility(5);
 	setPickupTimeLowVisibility(5);
-
+	setAvailability(1.);
 	setMobilizationTime(5);
-	setSpeed(10.2889);
+	//setSpeed(10.2889);
+	setSpeed(3.0866);
+	setMaxCapacity(6);
 }
 
 double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
@@ -175,7 +251,7 @@ double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
 									(9.054222 - getSpeed()) / 5;
 
 
-		double gs = getSpeed()+coeff*hs;
+		double gs = getSpeed(); // +coeff*hs;
 		t += distStep / (gs * 60);
 
 		if (t > 120) {
@@ -184,4 +260,14 @@ double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
 		}
 	}
 	return t;
+}
+
+double Helicopter::getCoordOverhead(int interferingUnits)
+{
+	return (interferingUnits==0) ? 1 : 2;
+}
+
+double ERV::getCoordOverhead(int interferingUnits)
+{
+	return 1;
 }

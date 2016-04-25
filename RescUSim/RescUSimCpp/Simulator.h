@@ -2,6 +2,7 @@
 #include "RescueUnits.h"
 #include "Weather.h"
 #include <list>
+#include <queue>
 #include <vector>
 #include "Position.h"
 

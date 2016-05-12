@@ -23,10 +23,19 @@ float Weather::hsAt(size_t scenario, size_t x, size_t y) {
 
 bool Weather::lightAt(size_t scenario, size_t x, size_t y)
 {
-	return weatherData[y + dimY*x + dimX*dimY*scenario].light;
+	return weatherData[y + dimY*x + dimX*dimY*scenario].light!=0;
+}
+
+WeatherData * Weather::getWeatherDataPtr()
+{
+	return weatherData;
 }
 
 size_t Weather::getNumScenarios() { return numScenarios; }
+
+size_t Weather::getMemSize() {
+	return dimX*dimY*getNumScenarios()*sizeof(WeatherData);
+}
 
 Bounds Weather::getBounds()
 {

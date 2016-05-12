@@ -1,9 +1,13 @@
 #pragma once
+#include <vector>
+
 
 struct Position {
-	Position(double x_, double y_) {
+	Position(float x_, float y_) {
 		x = x_; y = y_;
 	}
-	double x;
-	double y;
+	float x;
+	float y;
 };
+
+typedef std::vector<Position> PositionList;

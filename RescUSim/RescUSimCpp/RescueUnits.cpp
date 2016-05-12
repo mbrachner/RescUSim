@@ -18,7 +18,7 @@ RescueUnit & RescueUnit::setName(const std::string & name_) { name = name_; retu
 
 const std::string & RescueUnit::getName() { return name; }
 
-RescueUnit & RescueUnit::setPos(double posX_, double posY_) {
+RescueUnit & RescueUnit::setPos(float posX_, float posY_) {
 	pos = { posX_, posY_ }; return *this;
 }
 
@@ -185,14 +185,14 @@ double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weath
 	double t = 0;
 
 	double crs = atan2(dest.y - start.y, dest.x - start.x);
-	double dist = sqrt(pow(dest.x - start.x, 2) + pow(dest.y - start.y, 2));
+	float dist = sqrt(pow(dest.x - start.x, 2) + pow(dest.y - start.y, 2));
 
 	for (int step = 0; step <= (int)dist/DISTSTEP; step++) {
-		double distStep = std::min((double)DISTSTEP, dist - step * DISTSTEP);
+		float distStep = (std::min)((float)DISTSTEP, dist - step * DISTSTEP);
 
 		Position act = {
-			start.x + step * DISTSTEP * cos(crs),
-			start.y + step * DISTSTEP * sin(crs)
+			start.x + step * DISTSTEP * (float)cos(crs),
+			start.y + step * DISTSTEP * (float)sin(crs)
 		};
 
 
@@ -221,9 +221,10 @@ ERV::ERV(const std::string & name) :RescueUnit(name)
 	setPickupTimeLowVisibility(5);
 	setAvailability(1.);
 	setMobilizationTime(5);
-	//setSpeed(10.2889);
-	setSpeed(3.0866);
-	setMaxCapacity(6);
+	//setSpeed(72.2222222);
+	setSpeed(10.2889);
+	//setSpeed(3.0866);
+	//setMaxCapacity(6);
 }
 
 double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
@@ -237,8 +238,8 @@ double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
 		double distStep = std::min((double)DISTSTEP, dist - step * DISTSTEP);
 
 		Position act = {
-			start.x + step * DISTSTEP * cos(crs),
-			start.y + step * DISTSTEP * sin(crs)
+			start.x + step * DISTSTEP * (float)cos(crs),
+			start.y + step * DISTSTEP * (float)sin(crs)
 		};
 		
 
@@ -251,7 +252,7 @@ double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
 									(9.054222 - getSpeed()) / 5;
 
 
-		double gs = getSpeed(); // +coeff*hs;
+		double gs = getSpeed()+coeff*hs;
 		t += distStep / (gs * 60);
 
 		if (t > 120) {

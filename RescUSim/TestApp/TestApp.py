@@ -1,5 +1,7 @@
 import matplotlib
 matplotlib.use('Qt4Agg')
+import sys
+sys.path.append('C:\\Users\\mbrachner\\Source\\Repos\\RescUSim\\RescUSim\\x64\\Release\\')
 import RescUSimCpp
 import numpy as np
 import time
@@ -80,8 +82,14 @@ print "Das Wetter: ",
 print weather.wspAt(1400,4,5),weather.wdAt(1400,4,5),weather.hsAt(1400,4,5),weather.lightAt(1400,4,5);
 
 sim = RescUSimCpp.Simulator(weather)
-sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0))
-sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0))
+ru1 = RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0)
+
+ru2 = RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0)
+
+ru3 = RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0)
+ru4 = RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0)
+ru5 = RescUSimCpp.ERV("ERV3").setPos(637900.0, 273100.0)
+
 
 #sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0))
 #sim.addStationaryRU(RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0))
@@ -104,17 +112,28 @@ numValid = len(scenValid[scenValid == True]);
 print ("Valid: %s" % numValid);
 
 minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
-grid=np.mgrid[minx:maxx:10000, miny:maxy:10000]
+grid=np.array(np.mgrid[minx:maxx:10000, miny:maxy:10000],dtype=np.float32)
 grid = np.array(np.transpose(grid,axes=[1,2,0]).reshape(grid.shape[1]*grid.shape[2],grid.shape[0]))
 #grid = np.random.rand(10,2)*100;
 print grid.shape
 print grid
 sim.addPoi(grid)
 
+sim.addRUOpenCL(ru1);
+sys.exit(0);
+
+
+
 start = time.clock()
-sum = sim.simulate()
+sim.addRU(ru1)
+sim.addRU(ru2)
+
+#sum = sim.simulateTravel()
+sim.simulateResponse()
 end = time.clock()
+
 print (end-start)
+
 resCap = sim.getResCap()
 print resCap.shape
 #print resCap[:,0]
@@ -141,14 +160,13 @@ m.plot(255000.0, 554000.0,marker='*',markersize=40,zorder=20,color='yellow')
 #m.plot(726000.0, 450000.0,marker='v',markersize=15,zorder=20,color='yellow')
 #m.plot(723558.0, 345403.0,marker='v',markersize=15,zorder=20,color='yellow')
 #m.plot(637900.0, 273100.0,marker='v',markersize=15,zorder=20,color='yellow')
-
+serviceLevel=0.90
 grid=grid.reshape(83,59,2)
 resCap=resCap.reshape(83,59,numScenarios)
 resCap=resCap[:,:,scenValid]
 print resCap.shape
 #print ("Valid scenarios shape: %s" % resCap.shape);
 slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/float(numValid)
-serviceLevel = 0.90
 #np.save("C:\\tmp\\sl_aa_full_mit",slGrid)
 slGrid = np.ma.masked_where(slGrid < serviceLevel, slGrid)
 
@@ -169,6 +187,123 @@ def init():
     return cm,
 
 #ani = animation.FuncAnimation(fig, animate, range(0, numScenarios), init_func=init,blit=False, interval=1000)
+
+fig.tight_layout()
+plt.draw()
+plt.show()
+
+start = time.clock()
+sim.removeRU(ru1)
+sim.simulateResponse()
+end = time.clock()
+print (end-start)
+
+fig, ax = plt.subplots()
+m = Basemap(projection='aeqd',lat_0=72,lon_0=29, resolution='l',   
+            llcrnrlon=15, llcrnrlat=69,
+            urcrnrlon=38, urcrnrlat=74.6,area_thresh = 100,ax=ax)
+resCap = sim.getResCap()
+print resCap.shape
+capMax = np.max(resCap);
+
+startpointx, startpointy = (357309.0, 131195.0)
+
+m.fillcontinents(color='lightgray',lake_color='blue',zorder=15);
+m.drawcoastlines(zorder=15); 
+m.drawparallels(np.arange(-80.,81.,20.),zorder=10);
+m.drawmapboundary(fill_color='white',zorder=10)
+m.plot(357309.0, 131195.0,marker='*',markersize=40,zorder=20,color='yellow')
+m.plot(255000.0, 554000.0,marker='*',markersize=40,zorder=20,color='yellow')
+
+resCap=resCap.reshape(83,59,numScenarios)
+resCap=resCap[:,:,scenValid]
+print resCap.shape
+slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/float(numValid)
+slGrid = np.ma.masked_where(slGrid < serviceLevel, slGrid)
+
+cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],slGrid[:,:], vmin=serviceLevel, vmax=1.,zorder=1)
+cbar = fig.colorbar(cm)
+for l in cbar.ax.yaxis.get_ticklabels():
+    l.set_size(28)
+
+fig.tight_layout()
+plt.draw()
+plt.show()
+
+start = time.clock()
+sim.addRU(ru3)
+sim.addRU(ru4)
+sim.addRU(ru5)
+
+sim.simulateResponse()
+end = time.clock()
+print (end-start)
+
+fig, ax = plt.subplots()
+m = Basemap(projection='aeqd',lat_0=72,lon_0=29, resolution='l',   
+            llcrnrlon=15, llcrnrlat=69,
+            urcrnrlon=38, urcrnrlat=74.6,area_thresh = 100,ax=ax)
+resCap = sim.getResCap()
+print resCap.shape
+capMax = np.max(resCap);
+
+startpointx, startpointy = (357309.0, 131195.0)
+
+m.fillcontinents(color='lightgray',lake_color='blue',zorder=15);
+m.drawcoastlines(zorder=15); 
+m.drawparallels(np.arange(-80.,81.,20.),zorder=10);
+m.drawmapboundary(fill_color='white',zorder=10)
+m.plot(357309.0, 131195.0,marker='*',markersize=40,zorder=20,color='yellow')
+m.plot(255000.0, 554000.0,marker='*',markersize=40,zorder=20,color='yellow')
+
+resCap=resCap.reshape(83,59,numScenarios)
+resCap=resCap[:,:,scenValid]
+print resCap.shape
+slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/float(numValid)
+slGrid = np.ma.masked_where(slGrid < serviceLevel, slGrid)
+
+cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],slGrid[:,:], vmin=serviceLevel, vmax=1.,zorder=1)
+cbar = fig.colorbar(cm)
+for l in cbar.ax.yaxis.get_ticklabels():
+    l.set_size(28)
+
+fig.tight_layout()
+plt.draw()
+plt.show()
+
+start = time.clock()
+sim.addRU(ru1)
+sim.simulateResponse()
+end = time.clock()
+print (end-start)
+
+fig, ax = plt.subplots()
+m = Basemap(projection='aeqd',lat_0=72,lon_0=29, resolution='l',   
+            llcrnrlon=15, llcrnrlat=69,
+            urcrnrlon=38, urcrnrlat=74.6,area_thresh = 100,ax=ax)
+resCap = sim.getResCap()
+print resCap.shape
+capMax = np.max(resCap);
+
+startpointx, startpointy = (357309.0, 131195.0)
+
+m.fillcontinents(color='lightgray',lake_color='blue',zorder=15);
+m.drawcoastlines(zorder=15); 
+m.drawparallels(np.arange(-80.,81.,20.),zorder=10);
+m.drawmapboundary(fill_color='white',zorder=10)
+m.plot(357309.0, 131195.0,marker='*',markersize=40,zorder=20,color='yellow')
+m.plot(255000.0, 554000.0,marker='*',markersize=40,zorder=20,color='yellow')
+
+resCap=resCap.reshape(83,59,numScenarios)
+resCap=resCap[:,:,scenValid]
+print resCap.shape
+slGrid = np.where(resCap>21,1.,0.).sum(axis=2)/float(numValid)
+slGrid = np.ma.masked_where(slGrid < serviceLevel, slGrid)
+
+cm = ax.pcolormesh(grid[:,:,0],grid[:,:,1],slGrid[:,:], vmin=serviceLevel, vmax=1.,zorder=1)
+cbar = fig.colorbar(cm)
+for l in cbar.ax.yaxis.get_ticklabels():
+    l.set_size(28)
 
 fig.tight_layout()
 plt.draw()

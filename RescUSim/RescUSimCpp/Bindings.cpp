@@ -48,7 +48,8 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 
 	py::class_<Simulator>(m, "Simulator")
 		.def(py::init<const Weather &>())
-		.def("simulate", &Simulator::simulate)
+		.def("simulateTravel", &Simulator::simulateTravel)
+		.def("simulateResponse", &Simulator::simulateResponse)
 		.def("getResCap", [](Simulator &sim) {
 			//std::cout << (*sim.getPois()).size << std::endl;
 			auto result = py::array(py::buffer_info(
@@ -63,16 +64,20 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		})
 		.def("addStationaryRU", &Simulator::addStationaryRU)
 		.def("addTemporaryRU", &Simulator::addTemporaryRU)
+		.def("addRU", &Simulator::addRU)
+		.def("addRUOpenCL", &Simulator::addRUOpenCL)
+		.def("removeRU", &Simulator::removeRU)
 		.def("addPoi", [] (Simulator &sim, py::buffer poiList){
 			py::buffer_info infoPoiList = poiList.request();
 			size_t rowStride = infoPoiList.strides[0] / infoPoiList.itemsize;
 			size_t colStride = infoPoiList.strides[1] / infoPoiList.itemsize;
 			for (size_t i = 0; i < infoPoiList.shape[0]; i++) {
 
-				double px = *((double *)infoPoiList.ptr + i * rowStride);
-				double py = *((double *)infoPoiList.ptr + i * rowStride + colStride);
+				float px = *((float *)infoPoiList.ptr + i * rowStride);
+				float py = *((float *)infoPoiList.ptr + i * rowStride + colStride);
 				sim.addPoi(Position(px,py));
 			}
+			sim.initResTim();
 		})
 		;
 	return m.ptr();

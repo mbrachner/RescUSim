@@ -18,7 +18,9 @@ public:
 	float wspAt(size_t scenario, size_t x, size_t y);
 	float hsAt(size_t scenario, size_t x, size_t y);
 	bool lightAt(size_t scenario, size_t x, size_t y);
+	WeatherData *getWeatherDataPtr();
 	size_t getNumScenarios();
+	size_t getMemSize();
 	Bounds getBounds();
 	~Weather();
 

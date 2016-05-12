@@ -2,6 +2,7 @@
 #include <string>
 #include <tuple>
 #include <memory>
+#include <list>
 #include "Weather.h"
 #include "Position.h"
 
@@ -11,7 +12,7 @@ public:
 	RescueUnit(const std::string &name);
 	RescueUnit & setName(const std::string &name_);
 	const std::string &getName();
-	RescueUnit & setPos(double posX_, double posY_);
+	RescueUnit & setPos(float posX_, float posY_);
 	RescueUnit & setSpeed(double speed);
 	RescueUnit & setPickupTimeNormVisibility(double val);
 	RescueUnit & setPickupTimeLowVisibility(double val);
@@ -67,3 +68,5 @@ public:
 	double getPickupTime(Position dest, size_t scenario, Weather weather);
 	bool isInterfering();
 };
+
+typedef std::list<std::shared_ptr<RescueUnit>> RUList;

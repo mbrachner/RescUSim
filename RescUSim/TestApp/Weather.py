@@ -1,6 +1,6 @@
 import numpy as np
 import h5py
-import glob
+#import glob
 from mpl_toolkits.basemap import Basemap
 from scipy.spatial import cKDTree
 

@@ -6,56 +6,68 @@
 #include <math.h>
 #include "Bounds.h"
 
-RescueUnit::RescueUnit() :name("RU"), pos({ 0,0 }), speed(0), pickupTimeNormVisibility(0), mobilizationTime(0), maxCapacity(std::numeric_limits<unsigned int>::max())
+RescueUnit::RescueUnit()
 {
+	data.name = "RU";
+	data.pos = { 0,0 };
+	data.speed = 0;
+	data.pickupTimeLowVisibility = 0;
+	data.pickupTimeNormVisibility = 0;
+	data.maxCapacity = std::numeric_limits<unsigned int>::max();
 }
 
-RescueUnit::RescueUnit(const std::string & name) : name(name), pos({ 0,0 }), speed(0), pickupTimeNormVisibility(0), pickupTimeLowVisibility(0), mobilizationTime(0), maxCapacity(std::numeric_limits<unsigned int>::max())
+RescueUnit::RescueUnit(const std::string & name) 
 {
+	data.name = "RU";
+	data.pos = { 0,0 };
+	data.speed = 0;
+	data.pickupTimeLowVisibility = 0;
+	data.pickupTimeNormVisibility = 0;
+	data.maxCapacity = std::numeric_limits<unsigned int>::max();
 }
 
-RescueUnit & RescueUnit::setName(const std::string & name_) { name = name_; return *this; }
+RescueUnit & RescueUnit::setName(const std::string & name_) { data.name = name_; return *this; }
 
-const std::string & RescueUnit::getName() { return name; }
+const std::string & RescueUnit::getName() { return data.name; }
 
 RescueUnit & RescueUnit::setPos(float posX_, float posY_) {
-	pos = { posX_, posY_ }; return *this;
+	data.pos = { posX_, posY_ }; return *this;
 }
 
 RescueUnit & RescueUnit::setSpeed(double speed_) {
-	speed = speed_; return *this;
+	data.speed = speed_; return *this;
 }
 
 RescueUnit & RescueUnit::setPickupTimeNormVisibility(double val) {
-	pickupTimeNormVisibility = val; return *this;
+	data.pickupTimeNormVisibility = val; return *this;
 }
 
 RescueUnit & RescueUnit::setPickupTimeLowVisibility(double val)
 {
-	pickupTimeLowVisibility = val; return *this;
+	data.pickupTimeLowVisibility = val; return *this;
 }
 
 RescueUnit & RescueUnit::setMobilizationTime(double val)
 {
-	mobilizationTime = val;
+	data.mobilizationTime = val;
 	return *this;
 }
 
 RescueUnit & RescueUnit::setMaxCapacity(unsigned int val)
 {
-	maxCapacity = val;
+	data.maxCapacity = val;
 	return *this;
 }
 
 RescueUnit & RescueUnit::setAvailability(double val)
 {
-	availability = val;
+	data.availability = val;
 	return *this;
 }
 
 double RescueUnit::getMobilizationTime()
 {
-	return mobilizationTime;
+	return data.mobilizationTime;
 }
 
 
@@ -124,19 +136,19 @@ bool ERV::isInterfering()
 
 double RescueUnit::getPickupTimeNormVisibility()
 {
-	return pickupTimeNormVisibility;
+	return data.pickupTimeNormVisibility;
 }
 
 double RescueUnit::getPickupTimeLowVisibility()
 {
-	return pickupTimeLowVisibility;
+	return data.pickupTimeLowVisibility;
 }
 
-double RescueUnit::getSpeed() {return speed;}
+double RescueUnit::getSpeed() {return data.speed;}
 
 double RescueUnit::getAvailability()
 {
-	return availability;
+	return data.availability;
 }
 
 bool RescueUnit::isAvailable(double randomNumber)
@@ -146,17 +158,17 @@ bool RescueUnit::isAvailable(double randomNumber)
 
 unsigned int RescueUnit::getMaxCapacity()
 {
-	return maxCapacity;
+	return data.maxCapacity;
 }
 
 const std::tuple<double, double> RescueUnit::getPosTuple()
 {
-	return std::make_tuple(pos.x, pos.y);
+	return std::make_tuple(data.pos.x, data.pos.y);
 }
 
 Position RescueUnit::getPos()
 {
-	return pos;
+	return data.pos;
 }
 
 double RescueUnit::getCapacityTo(Position dest, size_t scenario, Weather weather, double timelimit)
@@ -167,10 +179,16 @@ double RescueUnit::getCapacityTo(Position dest, size_t scenario, Weather weather
 	return c;
 }
 
+void RescueUnit::setType(unsigned int type)
+{
+	data.type = type;
+}
+
 
 
 Helicopter::Helicopter(const std::string & name):RescueUnit(name)
 {
+	setType(CONST_TYPE_HELICOPTER);
 	setPickupTimeNormVisibility(3);
 	setPickupTimeLowVisibility(4);
 	setMobilizationTime(15);
@@ -217,6 +235,7 @@ double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weath
 //#pragma optimize("",off)
 ERV::ERV(const std::string & name) :RescueUnit(name)
 {	
+	setType(CONST_TYPE_ERV);
 	setPickupTimeNormVisibility(5);
 	setPickupTimeLowVisibility(5);
 	setAvailability(1.);

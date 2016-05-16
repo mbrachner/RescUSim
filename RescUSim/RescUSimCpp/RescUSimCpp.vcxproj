@@ -133,19 +133,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="OpenCLSim.cpp" />
     <ClCompile Include="RescueUnits.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="Bindings.cpp" />
     <ClCompile Include="Bounds.cpp" />
+    <ClCompile Include="SimulatorCPU.cpp" />
+    <ClCompile Include="SimulatorOpenCL.cpp" />
     <ClCompile Include="Weather.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OpenCLSim.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="Bounds.h" />
     <ClInclude Include="RescueUnits.h" />
     <ClInclude Include="Simulator.h" />
+    <ClInclude Include="SimulatorCPU.h" />
+    <ClInclude Include="SimulatorOpenCL.h" />
     <ClInclude Include="Weather.h" />
   </ItemGroup>
   <ItemGroup>

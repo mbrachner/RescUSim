@@ -30,7 +30,10 @@
     <ClCompile Include="Bounds.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OpenCLSim.cpp">
+    <ClCompile Include="SimulatorCPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimulatorOpenCL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +53,10 @@
     <ClInclude Include="Position.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OpenCLSim.h">
+    <ClInclude Include="SimulatorCPU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimulatorOpenCL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

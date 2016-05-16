@@ -123,66 +123,9 @@ void Simulator::addStationaryRU(std::shared_ptr<RescueUnit> ru)
 	stationaryRUs.push_back(ru);
 }
 
-void Simulator::addRU(std::shared_ptr<RescueUnit> ru) {
-#pragma omp parallel for schedule(dynamic) num_threads(4)
-	for (int scenario = 0; scenario < weather.getNumScenarios(); scenario++) {
 
-		if (!(scenario % 500)) {
-			std::cout << "Scenario " << scenario << std::endl;
-		}
-		int i = 0;
-		for (PositionList::const_iterator point = pois.begin(); point != pois.end(); ++point, i++) {
 
-			if (weather.getBounds().within(ru->getPos())) {
-				double t = ru->getTravelTimeTo(*point, scenario, weather);
 
-				if (t <= 120) {
-
-					RUTime h;
-					h.t = t;
-					h.ru = ru;
-					resTim[scenario][i].push_back(h);
-				}
-			}
-
-		}
-	}
-}
-
-void Simulator::initOpenCL() {
-
-	oclsim.uploadKernel();
-	oclsim.transferWeather(&weather);
-	oclsim.transferPOIs(&pois);
-}
-
-void Simulator::addRUOpenCL(std::shared_ptr<RescueUnit> ru) {
-	oclsim.execute(ru);
-#pragma omp parallel for schedule(dynamic) num_threads(4)
-	//__debugbreak();
-	for (int scenario = 0; scenario < weather.getNumScenarios(); scenario++) {
-
-		if (!(scenario % 500)) {
-			std::cout << "Scenario " << scenario << std::endl;
-		}
-		int i = 0;
-		for (PositionList::const_iterator point = pois.begin(); point != pois.end(); ++point, i++) {
-
-			if (weather.getBounds().within(ru->getPos())) {
-				float t = oclsim.getRes()[scenario*pois.size()+i];
-
-				if (t <= 120) {
-
-					RUTime h;
-					h.t = t;
-					h.ru = ru;
-					resTim[scenario][i].push_back(h);
-				}
-			}
-
-		}
-	}
-}
 
 void Simulator::removeRU(std::shared_ptr<RescueUnit> ru)
 {

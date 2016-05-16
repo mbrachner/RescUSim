@@ -2,7 +2,8 @@
 #include <pybind11/numpy.h>
 #include <iostream>
 #include "RescueUnits.h"
-#include "Simulator.h"
+#include "SimulatorCPU.h"
+#include "SimulatorOpenCL.h"
 #include "Weather.h"
 #include "Position.h"
 #include "Bounds.h"
@@ -46,11 +47,12 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("hsAt", &Weather::hsAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("lightAt", &Weather::lightAt, py::arg("scenario"), py::arg("x"), py::arg("y"));
 
-	py::class_<Simulator>(m, "Simulator")
+	py::class_<SimulatorCPU>(m, "SimulatorCPU")
 		.def(py::init<const Weather &>())
-		.def("simulateTravel", &Simulator::simulateTravel)
-		.def("simulateResponse", &Simulator::simulateResponse)
-		.def("getResCap", [](Simulator &sim) {
+
+		.def("simulateTravel", &SimulatorCPU::simulateTravel)
+		.def("simulateResponse", &SimulatorCPU::simulateResponse)
+		.def("getResCap", [](SimulatorCPU &sim) {
 			//std::cout << (*sim.getPois()).size << std::endl;
 			auto result = py::array(py::buffer_info(
 				sim.getResCap(),            /* Pointer to data (nullptr -> ask NumPy to allocate!) */
@@ -62,13 +64,13 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 			));
 			return result;
 		})
-		.def("addStationaryRU", &Simulator::addStationaryRU)
-		.def("addTemporaryRU", &Simulator::addTemporaryRU)
-		.def("addRU", &Simulator::addRU)
-		.def("initOpenCL", &Simulator::initOpenCL)
-		.def("addRUOpenCL", &Simulator::addRUOpenCL)
-		.def("removeRU", &Simulator::removeRU)
-		.def("addPoi", [] (Simulator &sim, py::buffer poiList){
+		.def("addStationaryRU", &SimulatorCPU::addStationaryRU)
+		.def("addTemporaryRU", &SimulatorCPU::addTemporaryRU)
+		.def("addRU", &SimulatorCPU::addRU)
+		//.def("initOpenCL", &SimulatorCPU::initOpenCL)
+		//.def("addRUOpenCL", &SimulatorCPU::addRUOpenCL)
+		.def("removeRU", &SimulatorCPU::removeRU)
+		.def("addPoi", [] (SimulatorCPU &sim, py::buffer poiList){
 			py::buffer_info infoPoiList = poiList.request();
 			size_t rowStride = infoPoiList.strides[0] / infoPoiList.itemsize;
 			size_t colStride = infoPoiList.strides[1] / infoPoiList.itemsize;
@@ -79,7 +81,44 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 				sim.addPoi(Position(px,py));
 			}
 			sim.initResTim();
+		});
+
+		py::class_<SimulatorOpenCL>(m, "SimulatorOpenCL")
+			.def(py::init<const Weather &>())
+
+			.def("simulateTravel", &SimulatorOpenCL::simulateTravel)
+			.def("simulateResponse", &SimulatorOpenCL::simulateResponse)
+			.def("getResCap", [](SimulatorOpenCL &sim) {
+			//std::cout << (*sim.getPois()).size << std::endl;
+			auto result = py::array(py::buffer_info(
+				sim.getResCap(),            /* Pointer to data (nullptr -> ask NumPy to allocate!) */
+				sizeof(double),     /* Size of one item */
+				py::format_descriptor<double>::value(), /* Buffer format */
+				2,          /* How many dimensions? */
+				{ sim.getNumPois(), sim.getWeather().getNumScenarios() },  /* Number of elements for each dimension */
+				{ sim.getWeather().getNumScenarios() * sizeof(double), sizeof(double) }  /* Strides for each dimension */
+			));
+			return result;
 		})
-		;
+			.def("addStationaryRU", &SimulatorOpenCL::addStationaryRU)
+			.def("addTemporaryRU", &SimulatorOpenCL::addTemporaryRU)
+			.def("addRU", &SimulatorOpenCL::addRU)
+			//.def("initOpenCL", &SimulatorCPU::initOpenCL)
+			//.def("addRUOpenCL", &SimulatorCPU::addRUOpenCL)
+			.def("removeRU", &SimulatorOpenCL::removeRU)
+			.def("addPoi", [](SimulatorOpenCL &sim, py::buffer poiList) {
+			py::buffer_info infoPoiList = poiList.request();
+			size_t rowStride = infoPoiList.strides[0] / infoPoiList.itemsize;
+			size_t colStride = infoPoiList.strides[1] / infoPoiList.itemsize;
+			for (size_t i = 0; i < infoPoiList.shape[0]; i++) {
+
+				float px = *((float *)infoPoiList.ptr + i * rowStride);
+				float py = *((float *)infoPoiList.ptr + i * rowStride + colStride);
+				sim.addPoi(Position(px, py));
+			}
+			sim.initResTim();
+			sim.transferPOIs();
+		})
+			;
 	return m.ptr();
 }

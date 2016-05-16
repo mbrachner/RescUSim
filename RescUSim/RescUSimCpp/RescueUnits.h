@@ -6,6 +6,21 @@
 #include "Weather.h"
 #include "Position.h"
 
+#define CONST_TYPE_HELICOPTER 1
+#define CONST_TYPE_ERV 2
+
+typedef struct {
+	unsigned int type = 0;
+	std::string name;
+	Position pos = { 0,0 };
+	double speed;
+	double pickupTimeNormVisibility;
+	double pickupTimeLowVisibility;
+	double mobilizationTime;
+	double availability;
+	unsigned int maxCapacity;
+} RescueUnitStruct;
+
 class RescueUnit {
 public:
 	RescueUnit();
@@ -38,17 +53,11 @@ public:
 
 protected:
 	const int DISTSTEP = 10000;
+	void setType(unsigned int type);
 
 
 private:
-	std::string name;
-	Position pos;
-	double speed;
-	double pickupTimeNormVisibility;
-	double pickupTimeLowVisibility;
-	double mobilizationTime;
-	double availability;
-	unsigned int maxCapacity;
+	RescueUnitStruct data;
 };
 
 class Helicopter: public RescueUnit {

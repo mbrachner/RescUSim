@@ -12,13 +12,14 @@ typedef struct {
 	unsigned int light;
 } WeatherData;
 
-typedef struct {
+typedef struct  {
 	float x;
 	float y;
 } Position;
 
-void kernel simple_add(global const WeatherData* A, unsigned int dimX, unsigned int dimY,
-						global const Position* B, global float* C, 
+
+void kernel simple_add(global const  WeatherData* A, unsigned int dimX, unsigned int dimY,
+						global const  Position* B, global float* C, 
 						float minx, float miny,
 						float initPosX, float initPosY, float mobTime, float speed ){
 	Position dest = B[get_global_id(1)];

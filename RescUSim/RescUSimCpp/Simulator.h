@@ -2,6 +2,7 @@
 #include "RescueUnits.h"
 #include "Weather.h"
 #include "Position.h"
+#include "OpenCLSim.h"
 
 struct RUTime {
 	double t;
@@ -16,6 +17,7 @@ public:
 	void simulateResponse();
 	void addStationaryRU(std::shared_ptr<RescueUnit> ru);
 	void addRU(std::shared_ptr<RescueUnit> ru);
+	void initOpenCL();
 	void addRUOpenCL(std::shared_ptr<RescueUnit> ru);
 	void removeRU(std::shared_ptr<RescueUnit> ru);
 	void addTemporaryRU(std::shared_ptr<RescueUnit> ru, size_t scenario);
@@ -28,11 +30,11 @@ public:
 	double getTimelimit();
 	double *getResCap();
 	~Simulator();
-
 private:
 	Weather weather;
 	RUList stationaryRUs;
 	PositionList pois;
+	OpenCLSim oclsim;
 	std::vector<RUList*> temporaryRUs;
 	std::vector<std::vector<std::list<RUTime>>> resTim;
 	double *resCap;

@@ -21,6 +21,8 @@ public:
 	WeatherData *getWeatherDataPtr();
 	size_t getNumScenarios();
 	size_t getMemSize();
+	size_t getDimX();
+	size_t getDimY();
 	Bounds getBounds();
 	~Weather();
 

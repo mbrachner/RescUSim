@@ -4,12 +4,11 @@
 #include <random>
 #include <exception>
 #include <algorithm>
-#include "OpenCLSim.h"
+
 
 //#pragma optimize("",off)
 Simulator::Simulator(Weather weather):weather(weather), resCap(nullptr), timelimit(120)
 {
-
 	temporaryRUs.resize(weather.getNumScenarios());
 
 	std::fill(temporaryRUs.begin(), temporaryRUs.end(), new RUList);
@@ -19,7 +18,7 @@ Simulator::Simulator(Weather weather):weather(weather), resCap(nullptr), timelim
 	//if (resCap != nullptr) { delete resCap; }
 
 
-
+	
 	
 }
 
@@ -80,10 +79,11 @@ double Simulator::simulateTravel()
 
 
 
-
+//#pragma optimize("",off)
 void Simulator::simulateResponse()
 {
 	memset(resCap, 0, weather.getNumScenarios()*pois.size() * sizeof(double));
+	//__debugbreak();
 
 #pragma omp parallel for schedule(dynamic) num_threads(4)
 	for (int scenario = 0; scenario < weather.getNumScenarios(); scenario++) {
@@ -149,13 +149,39 @@ void Simulator::addRU(std::shared_ptr<RescueUnit> ru) {
 	}
 }
 
+void Simulator::initOpenCL() {
+
+	oclsim.uploadKernel();
+	oclsim.transferWeather(&weather);
+	oclsim.transferPOIs(&pois);
+}
+
 void Simulator::addRUOpenCL(std::shared_ptr<RescueUnit> ru) {
-	std::cout << "Adding OpenCL RU" << std::endl;
-	OpenCLSim ocl;
-	ocl.uploadKernel();
-	ocl.transferPOIs(pois);
-	ocl.transferWeather(weather);
-	ocl.execute();
+	oclsim.execute(ru);
+#pragma omp parallel for schedule(dynamic) num_threads(4)
+	//__debugbreak();
+	for (int scenario = 0; scenario < weather.getNumScenarios(); scenario++) {
+
+		if (!(scenario % 500)) {
+			std::cout << "Scenario " << scenario << std::endl;
+		}
+		int i = 0;
+		for (PositionList::const_iterator point = pois.begin(); point != pois.end(); ++point, i++) {
+
+			if (weather.getBounds().within(ru->getPos())) {
+				float t = oclsim.getRes()[scenario*pois.size()+i];
+
+				if (t <= 120) {
+
+					RUTime h;
+					h.t = t;
+					h.ru = ru;
+					resTim[scenario][i].push_back(h);
+				}
+			}
+
+		}
+	}
 }
 
 void Simulator::removeRU(std::shared_ptr<RescueUnit> ru)

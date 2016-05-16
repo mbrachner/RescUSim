@@ -65,6 +65,7 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("addStationaryRU", &Simulator::addStationaryRU)
 		.def("addTemporaryRU", &Simulator::addTemporaryRU)
 		.def("addRU", &Simulator::addRU)
+		.def("initOpenCL", &Simulator::initOpenCL)
 		.def("addRUOpenCL", &Simulator::addRUOpenCL)
 		.def("removeRU", &Simulator::removeRU)
 		.def("addPoi", [] (Simulator &sim, py::buffer poiList){

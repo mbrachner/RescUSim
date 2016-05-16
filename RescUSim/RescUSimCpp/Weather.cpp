@@ -37,6 +37,16 @@ size_t Weather::getMemSize() {
 	return dimX*dimY*getNumScenarios()*sizeof(WeatherData);
 }
 
+size_t Weather::getDimX()
+{
+	return dimX;
+}
+
+size_t Weather::getDimY()
+{
+	return dimY;
+}
+
 Bounds Weather::getBounds()
 {
 	return bounds;

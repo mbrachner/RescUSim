@@ -2,7 +2,6 @@
 #include <fstream>
 #include <vector>
 #include "OpenCLSim.h"
-#include <chrono>
 
 inline void checkErr(cl_int err, const char * name) {
 	if (err != CL_SUCCESS) {
@@ -54,6 +53,8 @@ OpenCLSim::OpenCLSim() {
 	checkErr(err, "Context::Context()");
 	queue = cl::CommandQueue(context, default_device,0,&err);
 	checkErr(err, "Queue::Queue()");
+
+	
 }
 
 cl::Context OpenCLSim::getContext()
@@ -81,38 +82,55 @@ void OpenCLSim::uploadKernel() {
 
 }
 
-void OpenCLSim::transferWeather(Weather &weather) {
-	std::cout << (weather.getMemSize()/(1024*1024)) << " MB"<<std::endl;
+void OpenCLSim::transferWeather(Weather *_weather) {
+	weather = _weather;
+	std::cout << (weather->getMemSize()/(1024*1024)) << " MB"<<std::endl;
 	cl_int err;
-	buffer_Weather = cl::Buffer(context, CL_MEM_READ_WRITE, weather.getMemSize(),0,&err);
+	buffer_Weather = cl::Buffer(context, CL_MEM_READ_WRITE, weather->getMemSize(),0,&err);
 	checkErr(err, "Buffer::Buffer()");
-	//DebugBreak();
-	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	queue.enqueueWriteBuffer(buffer_Weather, CL_TRUE, 0, weather.getMemSize(), weather.getWeatherDataPtr());
-	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-	
-	std::cout << (duration/1000000.) << " microseconds" << std::endl;
-	buffer_res = cl::Buffer(context, CL_MEM_READ_WRITE, weather.getMemSize(), 0, &err);
-	checkErr(err, "buffer_res Buffer:Buffer()");
-}
-
-void OpenCLSim::transferPOIs(PositionList &pois) {
-	cl_int err;
-	std::cout << sizeof(Position)*pois.size()/(1024) << " kB" << std::endl;
-	buffer_POIs = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Position)*pois.size(), 0, &err);
-	checkErr(err, "buffer_POIs Buffer:Buffer()");
-	queue.enqueueWriteBuffer(buffer_POIs, CL_TRUE, 0, sizeof(Position)*pois.size(), pois.data());
-
-	buffer_res = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float)*pois.size(), 0, &err);
-	checkErr(err, "buffer_res Buffer:Buffer()");
-}
-
-void OpenCLSim::execute() {
-	kernel_add.setArg(0, buffer_Weather);
-	kernel_add.setArg(1, buffer_POIs);
-	kernel_add.setArg(2, buffer_res);
-	queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(10), cl::NullRange);
+	queue.enqueueWriteBuffer(buffer_Weather, CL_TRUE, 0, weather->getMemSize(), weather->getWeatherDataPtr());
 	queue.finish();
+}
+
+void OpenCLSim::transferPOIs(PositionList *_pois) {
+	pois = _pois;
+	cl_int err;
+	std::cout << sizeof(Position)*pois->size()/(1024) << " kB" << std::endl;
+	buffer_POIs = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Position)*pois->size(), 0, &err);
+	checkErr(err, "buffer_POIs Buffer:Buffer()");
+	queue.enqueueWriteBuffer(buffer_POIs, CL_TRUE, 0, sizeof(Position)*pois->size(), pois->data());
+	buffer_res = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float)*pois->size()*weather->getNumScenarios(), 0, &err);
+	res = (float *)malloc(sizeof(float)*pois->size()*weather->getNumScenarios());
+}
+
+void OpenCLSim::execute(std::shared_ptr<RescueUnit> ru) {
+	int argC = 0;
+	kernel_add.setArg(argC++, buffer_Weather);
+	kernel_add.setArg(argC++, (unsigned int)weather->getDimX());
+	kernel_add.setArg(argC++, (unsigned int)weather->getDimY());
+
+	kernel_add.setArg(argC++, buffer_POIs);
+	kernel_add.setArg(argC++, buffer_res);
+	kernel_add.setArg(argC++, (float)weather->getBounds().minx);
+	kernel_add.setArg(argC++, (float)weather->getBounds().miny);
+	kernel_add.setArg(argC++, (float)ru->getPos().x);
+	kernel_add.setArg(argC++, (float)ru->getPos().y);
+	kernel_add.setArg(argC++, (float)ru->getMobilizationTime());
+	kernel_add.setArg(argC++, (float)ru->getSpeed());
+
+	queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(weather->getNumScenarios(), pois->size()), cl::NullRange);
+	//queue.finish();
+	queue.enqueueReadBuffer(buffer_res, CL_TRUE, 0, sizeof(Position)*pois->size()*weather->getNumScenarios(), res);
+	queue.finish();
+	std::cout << "Result: " << res[0];
+}
+
+float * OpenCLSim::getRes()
+{
+	return res;
+}
+
+OpenCLSim::~OpenCLSim()
+{
 }
 

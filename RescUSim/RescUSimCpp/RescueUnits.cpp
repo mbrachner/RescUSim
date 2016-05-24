@@ -18,7 +18,7 @@ RescueUnit::RescueUnit()
 
 RescueUnit::RescueUnit(const std::string & name) 
 {
-	data.name = "RU";
+	data.name = name;
 	data.pos = { 0,0 };
 	data.speed = 0;
 	data.pickupTimeLowVisibility = 0;

@@ -20,6 +20,7 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("getName", &RescueUnit::getName)
 		.def("setPos", &RescueUnit::setPos)
 		.def("getPos", &RescueUnit::getPos)
+		.def("getPosTuple", &RescueUnit::getPosTuple)
 		.def("setSpeed", &RescueUnit::setSpeed)
 		.def("getSpeed", &RescueUnit::getSpeed)
 		.def("setMaxCapacity", &RescueUnit::setMaxCapacity)
@@ -45,9 +46,16 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("wdAt", &Weather::wdAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("wspAt", &Weather::wspAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("hsAt", &Weather::hsAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
-		.def("lightAt", &Weather::lightAt, py::arg("scenario"), py::arg("x"), py::arg("y"));
+		.def("lightAt", &Weather::lightAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
+		.def("getNumScenarios", &Weather::getNumScenarios)
+		;
 
-	py::class_<SimulatorCPU>(m, "SimulatorCPU")
+	py::class_<Simulator>(m, "Simulator")
+		.def("addRU", (void (Simulator::*)(std::shared_ptr<Helicopter>)) &Simulator::addRU)
+		.def("addRU", (void (Simulator::*)(std::shared_ptr<ERV>)) &Simulator::addRU);
+		
+
+	py::class_<SimulatorCPU>(m, "SimulatorCPU", py::base<Simulator>())
 		.def(py::init<const Weather &>())
 
 		.def("simulateTravel", &SimulatorCPU::simulateTravel)
@@ -66,9 +74,8 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		})
 		.def("addStationaryRU", &SimulatorCPU::addStationaryRU)
 		.def("addTemporaryRU", &SimulatorCPU::addTemporaryRU)
-		.def("addRU", &SimulatorCPU::addRU)
-		//.def("initOpenCL", &SimulatorCPU::initOpenCL)
-		//.def("addRUOpenCL", &SimulatorCPU::addRUOpenCL)
+		//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<Helicopter>)) &SimulatorCPU::addRU)
+		//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<ERV>)) &SimulatorCPU::addRU)
 		.def("removeRU", &SimulatorCPU::removeRU)
 		.def("addPoi", [] (SimulatorCPU &sim, py::buffer poiList){
 			py::buffer_info infoPoiList = poiList.request();
@@ -83,11 +90,11 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 			sim.initResTim();
 		});
 
-		py::class_<SimulatorOpenCL>(m, "SimulatorOpenCL")
+		py::class_<SimulatorOpenCL>(m, "SimulatorOpenCL", py::base<Simulator>())
 			.def(py::init<const Weather &>())
 
 			.def("simulateTravel", &SimulatorOpenCL::simulateTravel)
-			.def("simulateResponse", &SimulatorOpenCL::simulateResponse)
+			.def("simulateResponse", &Simulator::simulateResponse)
 			.def("getResCap", [](SimulatorOpenCL &sim) {
 			//std::cout << (*sim.getPois()).size << std::endl;
 			auto result = py::array(py::buffer_info(
@@ -102,9 +109,8 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		})
 			.def("addStationaryRU", &SimulatorOpenCL::addStationaryRU)
 			.def("addTemporaryRU", &SimulatorOpenCL::addTemporaryRU)
-			.def("addRU", &SimulatorOpenCL::addRU)
-			//.def("initOpenCL", &SimulatorCPU::initOpenCL)
-			//.def("addRUOpenCL", &SimulatorCPU::addRUOpenCL)
+			//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<Helicopter>)) &SimulatorOpenCL::addRU)
+			//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<ERV>)) &SimulatorOpenCL::addRU)
 			.def("removeRU", &SimulatorOpenCL::removeRU)
 			.def("addPoi", [](SimulatorOpenCL &sim, py::buffer poiList) {
 			py::buffer_info infoPoiList = poiList.request();

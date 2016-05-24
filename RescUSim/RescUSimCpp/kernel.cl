@@ -18,8 +18,8 @@ typedef struct  {
 } Position;
 
 
-void kernel simple_add(global const  WeatherData* A, unsigned int dimX, unsigned int dimY,
-						global const  Position* B, global float* C, 
+void kernel transitTimeHelicopter(__global const WeatherData* A, unsigned int dimX, unsigned int dimY,
+						__global const  Position* B, __global float* C, 
 						float minx, float miny,
 						float initPosX, float initPosY, float mobTime, float speed ){
 	Position dest = B[get_global_id(1)];
@@ -32,7 +32,12 @@ void kernel simple_add(global const  WeatherData* A, unsigned int dimX, unsigned
 	float crs = atan2(dest.y - start.y, dest.x - start.x);
 	float dist = sqrt(pow(dest.x - start.x, 2) + pow(dest.y - start.y, 2));
 
-		for (int step = 0; step <= (int)dist/DISTSTEP; step++) {
+	//if ((get_global_id(0)==10) && (get_global_id(1)==10)) {
+	//	printf ("%s\n","Course");
+	//}
+
+
+	for (int step = 0; step <= (int)dist/DISTSTEP; step++) {
 		float distStep = min((float)DISTSTEP, dist - step * DISTSTEP);
 
 		Position act = {
@@ -45,7 +50,7 @@ void kernel simple_add(global const  WeatherData* A, unsigned int dimX, unsigned
 		size_t iy = (size_t)((act.y-miny) / DISTSTEP);
 
 		WeatherData weather = A[iy + dimY*ix + dimX*dimY*scenario];
-
+		//WeatherData weather = {0,0,0,0};
 		//float wsp = weather.wspAt(scenario, ix, iy);
 		//float wd = weather.wdAt(scenario, ix, iy);
 		float wsp = weather.wsp;

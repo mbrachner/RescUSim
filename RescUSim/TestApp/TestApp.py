@@ -81,14 +81,14 @@ weather = RescUSimCpp.Weather(weatherData,RescUSimCpp.Bounds(minx, maxx, miny, m
 print "Das Wetter: ",
 print weather.wspAt(1400,4,5),weather.wdAt(1400,4,5),weather.hsAt(1400,4,5),weather.lightAt(1400,4,5);
 
-sim = RescUSimCpp.Simulator(weather)
+sim = RescUSimCpp.SimulatorCPU(weather)
 ru1 = RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0)
 
 ru2 = RescUSimCpp.Helicopter("Heli2").setPos(255000.0, 554000.0)
 
-ru3 = RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0)
-ru4 = RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0)
-ru5 = RescUSimCpp.ERV("ERV3").setPos(637900.0, 273100.0)
+#ru3 = RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0)
+#ru4 = RescUSimCpp.ERV("ERV2").setPos(723558.0, 345403.0)
+#ru5 = RescUSimCpp.ERV("ERV3").setPos(637900.0, 273100.0)
 
 
 #sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(726000.0, 450000.0))
@@ -119,8 +119,8 @@ print grid.shape
 print grid
 sim.addPoi(grid)
 
-sim.addRUOpenCL(ru1);
-sys.exit(0);
+#sim.addRU(ru1);
+#sys.exit(0);
 
 
 
@@ -281,6 +281,10 @@ fig, ax = plt.subplots()
 m = Basemap(projection='aeqd',lat_0=72,lon_0=29, resolution='l',   
             llcrnrlon=15, llcrnrlat=69,
             urcrnrlon=38, urcrnrlat=74.6,area_thresh = 100,ax=ax)
+
+
+
+
 resCap = sim.getResCap()
 print resCap.shape
 capMax = np.max(resCap);

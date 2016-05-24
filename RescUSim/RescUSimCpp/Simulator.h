@@ -15,9 +15,8 @@ public:
 	double simulateTravel();
 	void simulateResponse();
 	void addStationaryRU(std::shared_ptr<RescueUnit> ru);
-	virtual void addRU(std::shared_ptr<RescueUnit> ru) = 0;
-	void initOpenCL();
-	void addRUOpenCL(std::shared_ptr<RescueUnit> ru);
+	virtual void addRU(std::shared_ptr<Helicopter> ru) = 0;
+	virtual void addRU(std::shared_ptr<ERV> ru) = 0;
 	void removeRU(std::shared_ptr<RescueUnit> ru);
 	void addTemporaryRU(std::shared_ptr<RescueUnit> ru, size_t scenario);
 	void addPoi(Position p);

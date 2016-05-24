@@ -42,7 +42,12 @@ SimulatorOpenCL::SimulatorOpenCL(Weather weather) : Simulator(weather)
 	uploadKernel();
 }
 
-void SimulatorOpenCL::addRU(std::shared_ptr<RescueUnit> ru)
+void SimulatorOpenCL::addRU(std::shared_ptr<Helicopter> ru)
+{
+	execute(ru);
+}
+
+void SimulatorOpenCL::addRU(std::shared_ptr<ERV> ru)
 {
 	execute(ru);
 }
@@ -53,6 +58,15 @@ void SimulatorOpenCL::transferWeather() {
 	buffer_Weather = cl::Buffer(context, CL_MEM_READ_WRITE, weather.getMemSize(), 0, &err);
 	checkErr(err, "Buffer::Buffer()");
 	queue.enqueueWriteBuffer(buffer_Weather, CL_TRUE, 0, weather.getMemSize(), weather.getWeatherDataPtr());
+	//cl::size_t<3> origin;
+	//cl::size_t<3> region;
+	//origin[0] = weather.getBounds().minx;
+	//origin[1] = weather.getBounds().miny;
+	//origin[2] = 0;
+	//img_Weather = cl::Image3D(context, CL_MEM_READ_ONLY, cl_image_format({ CL_RGBA,CL_FLOAT }),
+	//	weather.getMemSize(), 10, 2920, 0Ui64, 0Ui64, NULL, &err);
+
+	//queue.enqueueWriteImage(img_Weather, CL_TRUE, origin, region,0,0, weather.getWeatherDataPtr());
 	queue.finish();
 }
 
@@ -62,7 +76,8 @@ void SimulatorOpenCL::transferPOIs() {
 	buffer_POIs = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Position)*pois.size(), 0, &err);
 	checkErr(err, "buffer_POIs Buffer:Buffer()");
 	queue.enqueueWriteBuffer(buffer_POIs, CL_TRUE, 0, sizeof(Position)*pois.size(), pois.data());
-	buffer_res = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float)*pois.size()*weather.getNumScenarios(), 0, &err);
+	buffer_res = cl::Buffer(context, CL_MEM_WRITE_ONLY, sizeof(float)*pois.size()*weather.getNumScenarios(), 0, &err);
+	checkErr(err, "buffer_res Buffer:Buffer()");
 	res = (float *)malloc(sizeof(float)*pois.size()*weather.getNumScenarios());
 	queue.finish();
 }
@@ -81,13 +96,14 @@ void SimulatorOpenCL::uploadKernel() {
 		std::cout << " Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(default_device) << "\n";
 		exit(1);
 	}
-	kernel_add = cl::Kernel(program, "simple_add", &err);
+	kernel_add = cl::Kernel(program, "transitTimeHelicopter", &err);
 	checkErr(err, "Kernel::Kernel()");
 
 }
 
 void SimulatorOpenCL::execute(std::shared_ptr<RescueUnit> ru) {
 	int argC = 0;
+	cl_int err;
 	kernel_add.setArg(argC++, buffer_Weather);
 	kernel_add.setArg(argC++, (unsigned int)weather.getDimX());
 	kernel_add.setArg(argC++, (unsigned int)weather.getDimY());
@@ -100,9 +116,37 @@ void SimulatorOpenCL::execute(std::shared_ptr<RescueUnit> ru) {
 	kernel_add.setArg(argC++, (float)ru->getMobilizationTime());
 	kernel_add.setArg(argC++, (float)ru->getSpeed());
 
-	queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(weather.getNumScenarios(), pois.size()), cl::NullRange);
-	queue.enqueueReadBuffer(buffer_res, CL_TRUE, 0, sizeof(Position)*pois.size()*weather.getNumScenarios(), res);
+	err = queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(weather.getNumScenarios(), pois.size()), cl::NullRange);
+	//err = queue.enqueueNDRangeKernel(kernel_add, cl::NullRange, cl::NDRange(3, pois.size()), cl::NullRange);
+	checkErr(err, "queue.enqueueNDRangeKernel()");
+	err = queue.enqueueReadBuffer(buffer_res, CL_TRUE, 0, sizeof(float)*pois.size()*weather.getNumScenarios(), res);
+	checkErr(err, "queue.enqueueReadBuffer()");
 	queue.finish();
+
+#pragma omp parallel for schedule(dynamic) num_threads(4)
+	for (int scenario = 0; scenario < weather.getNumScenarios(); scenario++) {
+
+		/*if (!(scenario % 500)) {
+			std::cout << "Scenario " << scenario << std::endl;
+		}*/
+		int i = 0;
+		for (PositionList::const_iterator point = pois.begin(); point != pois.end(); ++point, i++) {
+
+			if (weather.getBounds().within(ru->getPos())) {
+				double t = res[scenario*pois.size()+i];
+
+				if (t <= 120) {
+
+					RUTime h;
+					h.t = t;
+					h.ru = ru;
+					resTim[scenario][i].push_back(h);
+				}
+			}
+
+		}
+	}
+
 }
 
 SimulatorOpenCL::~SimulatorOpenCL()

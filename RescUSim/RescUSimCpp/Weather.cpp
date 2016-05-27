@@ -2,6 +2,10 @@
 #include <iostream>
 
 
+Weather::Weather() :bounds({ 0,0,0,0 }) {
+
+}
+
 Weather::Weather(WeatherData *weatherData, size_t numScenarios, size_t dimX, size_t dimY, Bounds bounds)
 	:weatherData(weatherData), numScenarios(numScenarios), dimX(dimX), dimY(dimY), bounds(bounds)
 {

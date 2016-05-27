@@ -5,6 +5,7 @@
 #include "SimulatorCPU.h"
 #include "SimulatorOpenCL.h"
 #include "Weather.h"
+#include "PointWeather.h"
 #include "Position.h"
 #include "Bounds.h"
 
@@ -49,6 +50,13 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("lightAt", &Weather::lightAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("getNumScenarios", &Weather::getNumScenarios)
 		;
+
+	py::class_<PointWeather, std::shared_ptr<PointWeather>>(m, "PointWeather")
+		.def("__init__", [](PointWeather &m, py::buffer pointData) {
+			py::buffer_info infoPointData = pointData.request();
+			new (&m) PointWeather((DPoint *)infoPointData.ptr, infoPointData.shape[0]);
+		})
+		.def("wdAtP", &PointWeather::wdAtP, py::arg("scenario"), py::arg("x"), py::arg("y"));
 
 	py::class_<Simulator>(m, "Simulator")
 		.def("addRU", (void (Simulator::*)(std::shared_ptr<Helicopter>)) &Simulator::addRU)

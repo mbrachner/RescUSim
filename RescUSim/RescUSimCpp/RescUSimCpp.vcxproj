@@ -121,7 +121,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\mbrachner\Anaconda\include;C:\Users\mbrachner\Source\Repos\pybind11\include;$(AMDAPPSDKROOT)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\mbrachner\Anaconda\include;C:\Users\mbrachner\Source\Repos\nanoflann\include;C:\Users\mbrachner\Source\Repos\pybind11\include;$(AMDAPPSDKROOT)\include</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="PointWeather.cpp" />
     <ClCompile Include="RescueUnits.cpp" />
     <ClCompile Include="Simulator.cpp" />
     <ClCompile Include="Bindings.cpp" />
@@ -142,6 +143,8 @@
     <ClCompile Include="Weather.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\nanoflann\include\nanoflann.hpp" />
+    <ClInclude Include="PointWeather.h" />
     <ClInclude Include="Position.h" />
     <ClInclude Include="Bounds.h" />
     <ClInclude Include="RescueUnits.h" />

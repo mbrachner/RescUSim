@@ -13,6 +13,7 @@ struct WeatherData {
 class Weather
 {
 public:
+	Weather();
 	Weather(WeatherData *weatherData, size_t numScenarios, size_t dimX, size_t dimY, Bounds bounds);
 	float wdAt(size_t scenario, size_t x, size_t y);
 	float wspAt(size_t scenario, size_t x, size_t y);

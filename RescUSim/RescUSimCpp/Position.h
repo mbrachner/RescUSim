@@ -3,11 +3,11 @@
 
 
 struct Position {
-	Position(float x_, float y_) {
+	Position(double x_, double y_) {
 		x = x_; y = y_;
 	}
-	float x;
-	float y;
+	double x;
+	double y;
 };
 
 typedef std::vector<Position> PositionList;

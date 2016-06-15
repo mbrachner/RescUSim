@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry import LineString, MultiPoint
 from time import sleep;
 from matplotlib import animation;
+import h5py;
 
 
 class LineStringI(LineString):
@@ -34,23 +35,37 @@ extreme_remote = m(37.000000, 74.500000);
 #print hammerfest;
 
 
-
-
+pois =LineStringI([hammerfest,castberg]).discretize(10000).union(
+                LineStringI([hammerfest,wisting]).discretize(10000).union(
+                LineStringI([berlevaag,extreme_remote]).discretize(10000)));
+resolution = 20000
+poisArr = np.array(pois,dtype=np.float32)
 
 
 print "Loading weather...",
-weatherData = Weather.loadWeather(m)
+h5f = h5py.File('c:\\tmp\\data_idw.h5', 'r')
+descr = np.dtype([('wind_xcomp', '<f4'), ('wind_ycomp', '<f4'), ('hs', '<f4'), ('light', 'u1')],align=1)
+weatherData = np.array(h5f['weather_data'][:],dtype=descr)
 
-minx, maxx, miny, maxy = (27686.0,848650.0,56061.0,645608.0)
+minx, miny, maxx, maxy = pois.envelope.bounds
+grid_x, grid_y = np.mgrid[minx:maxx+resolution:resolution, miny:maxy+resolution:resolution]
+print grid_x.shape
+
+print minx, miny, maxx, maxy 
+print (maxx-minx)/grid_x.shape[0],(maxy-miny)/grid_x.shape[1]
+
 a=np.array((minx,miny))
 b=np.array((maxx,maxy))
 
-weather = RescUSimCpp.Weather(weatherData,RescUSimCpp.Bounds(minx, maxx, miny, maxy))
+weather = RescUSimCpp.Weather(weatherData,minx,miny,resolution)
 print "done"
 
 print "Setting up RUs...",
 #sim = RescUSimCpp.SimulatorOpenCL(weather)
-sim = RescUSimCpp.SimulatorOpenCL(weather)
+sim = RescUSimCpp.SimulatorCPU(weather)
+print ("Adding {} POIs...".format(poisArr.shape));
+sim.addPoi(poisArr);
+print "done"
 #ru1 = RescUSimCpp.Helicopter("Heli1").setPos(357309.0, 131195.0)
 rus = list();
 rus.append(RescUSimCpp.Helicopter("Heli1").setPos(*hammerfest));
@@ -66,13 +81,7 @@ print "done"
 #grid = np.array(np.transpose(grid,axes=[1,2,0]).reshape(grid.shape[1]*grid.shape[2],grid.shape[0]))
 #sim.addPoi(grid)
 
-pois = np.array(LineStringI([hammerfest,castberg]).discretize(10000).union(
-                LineStringI([hammerfest,wisting]).discretize(10000).union(
-                LineStringI([berlevaag,extreme_remote]).discretize(10000))
-                ),dtype=np.float32);
-print ("Adding {} POIs...".format(pois.shape[0]));
-sim.addPoi(pois);
-print "done"
+
 
 numScenarios = 2920;
 
@@ -99,7 +108,7 @@ for r in rus:
     markersOpt[r] = mo;
 
 cm = plt.cm.get_cmap('RdYlBu')
-scp = m.scatter(pois[:,0],pois[:,1], c=np.zeros(pois.shape[0]), marker='o', vmin=0.9, vmax=1., s=50, cmap=cm, zorder=3);
+scp = m.scatter(poisArr[:,0],poisArr[:,1], c=np.zeros(poisArr.shape[0]), marker='o', vmin=0.9, vmax=1., s=50, cmap=cm, zorder=3);
 fig.tight_layout();
 #plt.pause(0.05);
 
@@ -114,7 +123,7 @@ def init():
         x,y = r.getPosTuple();
         markersCur[r].set_data([x], [y]);
         markersOpt[r].set_data([x], [y]);
-    scp.set_array(np.zeros(pois.shape[0]));
+    scp.set_array(np.zeros(poisArr.shape[0]));
     
     return [markersCur[r] for r in rus]+[markersOpt[r] for r in rus]+list([scp])
 

@@ -38,12 +38,15 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def(py::init<const double, const double, const double, const double>());
 
 	py::class_<Weather, std::shared_ptr<Weather>>(m, "Weather")
-		.def("__init__", [](Weather &m, py::buffer wdata, Bounds bounds) {
+		.def("__init__", [](Weather &m, py::buffer wdata, double minx, double miny, unsigned int resolution) {
 			py::buffer_info infoWdata = wdata.request();
-
+			std::cout << "Bind Itemsize: " << infoWdata.itemsize << std::endl;
+			std::cout << "Bind Format: " << infoWdata.format << std::endl;
+			Bounds bounds = { minx, minx + infoWdata.shape[1] * resolution, miny, miny + infoWdata.shape[2] * resolution };
 			new (&m) Weather((WeatherData *)infoWdata.ptr,
-				infoWdata.shape[0], infoWdata.shape[1], infoWdata.shape[2], bounds);
+				infoWdata.shape[0], infoWdata.shape[1], infoWdata.shape[2], resolution, bounds);
 		})
+		.def("windAt", &Weather::windAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("wdAt", &Weather::wdAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("wspAt", &Weather::wspAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
 		.def("hsAt", &Weather::hsAt, py::arg("scenario"), py::arg("x"), py::arg("y"))
@@ -51,39 +54,54 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		.def("getNumScenarios", &Weather::getNumScenarios)
 		;
 
-	py::class_<PointWeather, std::shared_ptr<PointWeather>>(m, "PointWeather")
-		.def("__init__", [](PointWeather &m, py::buffer pointData) {
-			py::buffer_info infoPointData = pointData.request();
-			new (&m) PointWeather((DPoint *)infoPointData.ptr, infoPointData.shape[0]);
-		})
-		.def("wdAtP", &PointWeather::wdAtP, py::arg("scenario"), py::arg("x"), py::arg("y"));
 
 	py::class_<Simulator>(m, "Simulator")
+		.def("sample", &Simulator::sample)
 		.def("addRU", (void (Simulator::*)(std::shared_ptr<Helicopter>)) &Simulator::addRU)
-		.def("addRU", (void (Simulator::*)(std::shared_ptr<ERV>)) &Simulator::addRU);
-		
+		.def("addRU", (void (Simulator::*)(std::shared_ptr<ERV>)) &Simulator::addRU)
+		///.def("addStationaryRU", &Simulator::addStationaryRU)
+		.def("addStationaryRU", (void (Simulator::*)(std::shared_ptr<Helicopter>)) &Simulator::addStationaryRU)
+		.def("addStationaryRU", (void (Simulator::*)(std::shared_ptr<ERV>))&Simulator::addStationaryRU)
 
-	py::class_<SimulatorCPU>(m, "SimulatorCPU", py::base<Simulator>())
-		.def(py::init<const Weather &>())
+		.def("simulateResponseSample", [](Simulator &sim) {
 
-		.def("simulateTravel", &SimulatorCPU::simulateTravel)
-		.def("simulateResponse", &SimulatorCPU::simulateResponse)
-		.def("getResCap", [](SimulatorCPU &sim) {
-			//std::cout << (*sim.getPois()).size << std::endl;
+			auto resArr = py::array(py::buffer_info(
+				nullptr,
+				sizeof(double),
+				py::format_descriptor<double>::value(),
+				1,
+				{ sim.getSampleSize() },
+				{ sizeof(double) }
+			));
+
+			auto bufRes = resArr.request();
+			
+			sim.simulateResponseSample((double *)bufRes.ptr);
+			
+			return resArr;
+		})
+		.def("getResCap", [](Simulator &sim) {
 			auto result = py::array(py::buffer_info(
 				sim.getResCap(),            /* Pointer to data (nullptr -> ask NumPy to allocate!) */
 				sizeof(double),     /* Size of one item */
 				py::format_descriptor<double>::value(), /* Buffer format */
 				2,          /* How many dimensions? */
-				{ sim.getNumPois(), sim.getWeather().getNumScenarios() },  /* Number of elements for each dimension */
-				{ sim.getWeather().getNumScenarios()*sizeof(double), sizeof(double) }  /* Strides for each dimension */
+				{ sim.getNumPois(), sim.getWeather()->getNumScenarios() },  /* Number of elements for each dimension */
+				{ sim.getWeather()->getNumScenarios()*sizeof(double), sizeof(double) }  /* Strides for each dimension */
 			));
 			return result;
 		})
-		.def("addStationaryRU", &SimulatorCPU::addStationaryRU)
+		;
+		
+
+	py::class_<SimulatorCPU>(m, "SimulatorCPU", py::base<Simulator>())
+		.def(py::init<std::shared_ptr<Weather>>())
+
+		.def("simulateTravel", &SimulatorCPU::simulateTravel)
+		.def("simulateResponse", &SimulatorCPU::simulateResponse)
+		//.def("addStationaryRU", (void (SimulatorCPU::*)(std::shared_ptr<Helicopter>)) &Simulator::addStationaryRU)
+		//.def("addStationaryRU", (void (SimulatorCPU::*)(std::shared_ptr<ERV>))&Simulator::addStationaryRU)
 		.def("addTemporaryRU", &SimulatorCPU::addTemporaryRU)
-		//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<Helicopter>)) &SimulatorCPU::addRU)
-		//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<ERV>)) &SimulatorCPU::addRU)
 		.def("removeRU", &SimulatorCPU::removeRU)
 		.def("addPoi", [] (SimulatorCPU &sim, py::buffer poiList){
 			py::buffer_info infoPoiList = poiList.request();
@@ -99,7 +117,7 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 		});
 
 		py::class_<SimulatorOpenCL>(m, "SimulatorOpenCL", py::base<Simulator>())
-			.def(py::init<const Weather &>())
+			.def(py::init<std::shared_ptr<Weather>>())
 
 			.def("simulateTravel", &SimulatorOpenCL::simulateTravel)
 			.def("simulateResponse", &Simulator::simulateResponse)
@@ -110,15 +128,12 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 				sizeof(double),     /* Size of one item */
 				py::format_descriptor<double>::value(), /* Buffer format */
 				2,          /* How many dimensions? */
-				{ sim.getNumPois(), sim.getWeather().getNumScenarios() },  /* Number of elements for each dimension */
-				{ sim.getWeather().getNumScenarios() * sizeof(double), sizeof(double) }  /* Strides for each dimension */
+				{ sim.getNumPois(), sim.getWeather()->getNumScenarios() },  /* Number of elements for each dimension */
+				{ sim.getWeather()->getNumScenarios() * sizeof(double), sizeof(double) }  /* Strides for each dimension */
 			));
 			return result;
 		})
-			.def("addStationaryRU", &SimulatorOpenCL::addStationaryRU)
 			.def("addTemporaryRU", &SimulatorOpenCL::addTemporaryRU)
-			//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<Helicopter>)) &SimulatorOpenCL::addRU)
-			//.def("addRU", (void (SimulatorOpenCL::*)(std::shared_ptr<ERV>)) &SimulatorOpenCL::addRU)
 			.def("removeRU", &SimulatorOpenCL::removeRU)
 			.def("addPoi", [](SimulatorOpenCL &sim, py::buffer poiList) {
 			py::buffer_info infoPoiList = poiList.request();
@@ -131,7 +146,7 @@ PYBIND11_PLUGIN(RescUSimCpp) {
 				sim.addPoi(Position(px, py));
 			}
 			sim.initResTim();
-			sim.transferPOIs();
+			//sim.transferPOIs();
 		})
 			;
 	return m.ptr();

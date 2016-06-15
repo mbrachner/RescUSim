@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>488d12ac-36f9-43e6-984e-47ba23a33d4c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>NewWeather.py</StartupFile>
+    <StartupFile>OpenCLTest.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -24,6 +24,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="OpenCLTest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TestSim.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WeatherTest.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="NewWeather.py">
       <SubType>Code</SubType>
     </Compile>
@@ -45,6 +54,11 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'DebugWOOpenMP' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <OutputPath>bin\DebugWOOpenMP\</OutputPath>
   </PropertyGroup>
   <Import Condition="Exists($(PtvsTargetsFile))" Project="$(PtvsTargetsFile)" />
   <Import Condition="!Exists($(PtvsTargetsFile))" Project="$(MSBuildToolsPath)\Microsoft.Common.targets" />

@@ -36,7 +36,7 @@
     <ClCompile Include="SimulatorOpenCL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="PointWeather.cpp">
+    <ClCompile Include="RescueUnitCPU.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,15 +62,18 @@
     <ClInclude Include="SimulatorOpenCL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PointWeather.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\nanoflann\include\nanoflann.hpp">
+    <ClInclude Include="RescueUnitCPU.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="kernel.cl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="newkernel.cl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="texture.cl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

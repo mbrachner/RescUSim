@@ -9,17 +9,7 @@
 #define CONST_TYPE_HELICOPTER 1
 #define CONST_TYPE_ERV 2
 
-typedef struct {
-	unsigned int type = 0;
-	std::string name;
-	Position pos = { 0,0 };
-	double speed;
-	double pickupTimeNormVisibility;
-	double pickupTimeLowVisibility;
-	double mobilizationTime;
-	double availability;
-	unsigned int maxCapacity;
-} RescueUnitStruct;
+
 
 class RescueUnit {
 public:
@@ -35,20 +25,21 @@ public:
 	RescueUnit & setMaxCapacity(unsigned int val);
 	RescueUnit & setAvailability(double val);
 	double getMobilizationTime();
-	virtual double getPickupTime(Position dest, size_t scenario, Weather weather)=0;
+	//virtual double getPickupTime(Position dest, size_t scenario, Weather weather)=0;
 	double getPickupTimeNormVisibility();
 	double getPickupTimeLowVisibility();
 	double getSpeed();
 	double getAvailability();
+	virtual const unsigned int getType();
 	bool isAvailable(double randomNumber);
 	unsigned int getMaxCapacity();
 	const std::tuple<double, double> getPosTuple();
 	Position getPos();
 
-	virtual double getTravelTimeTo(Position dest, size_t scenario, Weather weather)=0;
-	virtual double getCoordOverhead(int numHelis)=0;
+	//virtual double getTravelTimeTo(Position dest, size_t scenario, Weather weather)=0;
+	//virtual double getCoordOverhead(int numHelis)=0;
 	virtual bool isInterfering() = 0;
-	double getCapacityTo(Position dest, size_t scenario, Weather weather, double timelimit);
+	//double getCapacityTo(Position dest, size_t scenario, Weather weather, double timelimit);
 
 
 protected:
@@ -57,14 +48,22 @@ protected:
 
 
 private:
-	RescueUnitStruct data;
+	unsigned int type = 0;
+	std::string name;
+	Position pos = { 0,0 };
+	double speed;
+	double pickupTimeNormVisibility;
+	double pickupTimeLowVisibility;
+	double mobilizationTime;
+	double availability;
+	unsigned int maxCapacity;
 };
 
 class Helicopter: public RescueUnit {
 public:
 	Helicopter(const std::string &name);
 	double getTravelTimeTo(Position dest, size_t scenario, Weather weather);
-	double getCoordOverhead(int numHelis);
+	//double getCoordOverhead(int numHelis);
 	double getPickupTime(Position dest, size_t scenario, Weather weather);
 	bool isInterfering();
 };
@@ -73,9 +72,9 @@ class ERV : public RescueUnit {
 public:
 	ERV(const std::string &name);
 	double getTravelTimeTo(Position dest, size_t scenario, Weather weather);
-	double getCoordOverhead(int numHelis);
+	//double getCoordOverhead(int numHelis);
 	double getPickupTime(Position dest, size_t scenario, Weather weather);
 	bool isInterfering();
 };
 
-typedef std::list<std::shared_ptr<RescueUnit>> RUList;
+typedef std::vector<std::shared_ptr<RescueUnit>> RUList;

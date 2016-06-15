@@ -2,40 +2,65 @@
 #include "RescueUnits.h"
 #include "Weather.h"
 #include "Position.h"
+#include <random>
 
+template <typename T>
 struct RUTime {
+	RUTime() {
+		t = nan("");
+		ru = nullptr;
+	}
+	RUTime(double _t, T _ru) {
+		t = _t;
+		ru = _ru;
+	}
 	double t;
-	std::shared_ptr<RescueUnit> ru;
+	T ru;
+};
+
+struct Sample {
+	Sample(double _scenario, Position *_poi) {
+		scenario = _scenario; poi = _poi;
+	}
+	double scenario;
+	Position *poi;
 };
 
 class Simulator
 {
 public:
-	Simulator(Weather weather);
+	Simulator(std::shared_ptr<Weather> weather);
+	void sample(size_t sampleSize);
+	size_t getSampleSize();
 	double simulateTravel();
 	void simulateResponse();
-	void addStationaryRU(std::shared_ptr<RescueUnit> ru);
+	virtual void simulateResponseSample(double *res) = 0;
 	virtual void addRU(std::shared_ptr<Helicopter> ru) = 0;
 	virtual void addRU(std::shared_ptr<ERV> ru) = 0;
+	//virtual void addStationaryRU(std::shared_ptr<RescueUnit> ru);
+	virtual void addStationaryRU(std::shared_ptr<Helicopter> ru);
+	virtual void addStationaryRU(std::shared_ptr<ERV> ru);
 	void removeRU(std::shared_ptr<RescueUnit> ru);
 	void addTemporaryRU(std::shared_ptr<RescueUnit> ru, size_t scenario);
 	void addPoi(Position p);
 	void initResTim();
 	size_t getNumPois();
-	void setWeather(Weather weather);
-	Weather getWeather();
+	void setWeather(std::shared_ptr<Weather> weather);
+	std::shared_ptr<Weather> getWeather();
 	void setTimelimit(double val);
 	double getTimelimit();
 	double *getResCap();
 	~Simulator();
 
 protected:
-	Weather weather;
-	std::vector<std::vector<std::list<RUTime>>> resTim;
+	std::shared_ptr<Weather> weather;
+	//std::vector<std::vector<std::list<RUTime>>> resTim;
 	PositionList pois;
 	RUList stationaryRUs;
 	std::vector<RUList*> temporaryRUs;
+	std::vector<Sample> samples;
 	double *resCap;
 	double timelimit;
+	std::mt19937 generator;
 }; 
 

@@ -28,7 +28,7 @@ def loadWeather(m):
                            dtype=[('wsp', np.float32),('wdir', np.float32),('hs', np.float32),('light', np.uint32)])
     for d in range(0,values_idw.shape[0]):
         values_idw[d,:]['wsp'] = weather_data[d,:]['wsp'][indsNN] / 10.
-        values_idw[d,:]['wdir'] = np.deg2rad(weather_data[d,:]['dir'][indsNN])
+        values_idw[d,:]['wdir'] = np.deg2rad(weather_data[d,:]['wdir'][indsNN])
         values_idw[d,:]['hs'] = (np.sum(w * (weather_data[d,:]['hs'][inds]), axis=1) / su)/10.
         values_idw[d,:]['light'] = weather_data[d,:]['light'][indsNN]
 

@@ -43,17 +43,19 @@ SimulatorOpenCL::SimulatorOpenCL(std::shared_ptr<Weather> weather) : Simulator(w
 	//uploadKernel("C:\\Users\\mbrachner\\Source\\Repos\\RescUSim\\RescUSim\\RescUSimCpp\\kernel.cl", "transitTimeHelicopter");
 }
 
-void SimulatorOpenCL::addStationaryRU(std::shared_ptr<Helicopter> ru)
+std::shared_ptr<Helicopter> SimulatorOpenCL::addStationaryRU(std::shared_ptr<Helicopter> ru)
 {
 	std::cout << "Adding Helicopter" << std::endl;
 	Simulator::addStationaryRU(ru);
+	return ru;
 
 }
 
-void SimulatorOpenCL::addStationaryRU(std::shared_ptr<ERV> ru)
+std::shared_ptr<ERV> SimulatorOpenCL::addStationaryRU(std::shared_ptr<ERV> ru)
 {
 	std::cout << "Adding ERV" << std::endl;
 	Simulator::addStationaryRU(ru);
+	return ru;
 }
 
 void SimulatorOpenCL::addRU(std::shared_ptr<Helicopter> ru)

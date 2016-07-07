@@ -30,20 +30,17 @@ class Simulator
 {
 public:
 	Simulator(std::shared_ptr<Weather> weather);
-	void sample(size_t sampleSize);
+	virtual void sample(size_t sampleSize);
 	size_t getSampleSize();
 	double simulateTravel();
 	void simulateResponse();
 	virtual void simulateResponseSample(double *res) = 0;
-	virtual void addRU(std::shared_ptr<Helicopter> ru) = 0;
-	virtual void addRU(std::shared_ptr<ERV> ru) = 0;
 	//virtual void addStationaryRU(std::shared_ptr<RescueUnit> ru);
-	virtual void addStationaryRU(std::shared_ptr<Helicopter> ru);
-	virtual void addStationaryRU(std::shared_ptr<ERV> ru);
+	virtual std::shared_ptr<Helicopter> addStationaryRU(std::shared_ptr<Helicopter> ru);
+	virtual std::shared_ptr<ERV> addStationaryRU(std::shared_ptr<ERV> ru);
 	void removeRU(std::shared_ptr<RescueUnit> ru);
 	void addTemporaryRU(std::shared_ptr<RescueUnit> ru, size_t scenario);
 	void addPoi(Position p);
-	void initResTim();
 	size_t getNumPois();
 	void setWeather(std::shared_ptr<Weather> weather);
 	std::shared_ptr<Weather> getWeather();

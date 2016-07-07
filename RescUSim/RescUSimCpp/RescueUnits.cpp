@@ -16,7 +16,7 @@ RescueUnit::RescueUnit()
 	maxCapacity = std::numeric_limits<unsigned int>::max();
 }
 
-RescueUnit::RescueUnit(const std::string & _name) 
+RescueUnit::RescueUnit(const std::string & _name, std::shared_ptr<Weather> _weather) 
 {
 	name = _name;
 	pos = { 0,0 };
@@ -24,43 +24,68 @@ RescueUnit::RescueUnit(const std::string & _name)
 	pickupTimeLowVisibility = 0;
 	pickupTimeNormVisibility = 0;
 	maxCapacity = std::numeric_limits<unsigned int>::max();
+	weather = _weather;
 }
 
 RescueUnit & RescueUnit::setName(const std::string & name_) { name = name_; return *this; }
 
 const std::string & RescueUnit::getName() { return name; }
 
-RescueUnit & RescueUnit::setPos(float posX_, float posY_) {
-	pos = { posX_, posY_ }; return *this;
+RescueUnit & RescueUnit::setPos(double posX_, double posY_) {
+	if ((posX_ >= weather->getBounds().minx) && (posX_ <= weather->getBounds().maxx) &&
+		(posY_ >= weather->getBounds().miny) && (posY_ <= weather->getBounds().maxy)) {
+		setDirty();
+		pos = { posX_, posY_ };
+	}
+	else {
+		throw 100;
+	}
+	return *this;
+}
+
+RescueUnit & RescueUnit::setPosU(double posX_, double posY_)
+{
+	// TODO: insert return statement here
+	Position p = getPos();
+	double px = weather->getBounds().minx + posX_*(weather->getBounds().maxx - weather->getBounds().minx);
+	double py = weather->getBounds().miny + posY_*(weather->getBounds().maxy - weather->getBounds().miny);
+	setPos(px, py);
+	return *this;
 }
 
 RescueUnit & RescueUnit::setSpeed(double speed_) {
+	setDirty();
 	speed = speed_; return *this;
 }
 
 RescueUnit & RescueUnit::setPickupTimeNormVisibility(double val) {
+	setDirty();
 	pickupTimeNormVisibility = val; return *this;
 }
 
 RescueUnit & RescueUnit::setPickupTimeLowVisibility(double val)
 {
+	setDirty();
 	pickupTimeLowVisibility = val; return *this;
 }
 
 RescueUnit & RescueUnit::setMobilizationTime(double val)
 {
+	setDirty();
 	mobilizationTime = val;
 	return *this;
 }
 
 RescueUnit & RescueUnit::setMaxCapacity(unsigned int val)
 {
+	setDirty();
 	maxCapacity = val;
 	return *this;
 }
 
 RescueUnit & RescueUnit::setAvailability(double val)
 {
+	setDirty();
 	availability = val;
 	return *this;
 }
@@ -69,6 +94,8 @@ double RescueUnit::getMobilizationTime()
 {
 	return mobilizationTime;
 }
+
+
 
 
 bool Helicopter::isInterfering()
@@ -101,6 +128,21 @@ double RescueUnit::getAvailability()
 	return availability;
 }
 
+void RescueUnit::setDirty()
+{
+	dirty = true;
+}
+
+void RescueUnit::resetDirty()
+{
+	dirty = false;
+}
+
+bool RescueUnit::isDirty()
+{
+	return dirty;
+}
+
 const unsigned int RescueUnit::getType()
 {
 	return type;
@@ -121,20 +163,37 @@ const std::tuple<double, double> RescueUnit::getPosTuple()
 	return std::make_tuple(pos.x, pos.y);
 }
 
+const std::tuple<double, double> RescueUnit::getPosUTuple()
+{
+	Position p = getPosU();
+	return std::make_tuple(p.x, p.y);
+}
+
 Position RescueUnit::getPos()
 {
 	return pos;
 }
 
+Position RescueUnit::getPosU()
+{
+	Position p = getPos();
+	Position pU = Position(
+		(p.x - weather->getBounds().minx) / (weather->getBounds().maxx - weather->getBounds().minx),
+		(p.y - weather->getBounds().miny) / (weather->getBounds().maxy - weather->getBounds().miny)
+		);
+	return pU;
+}
+
 
 void RescueUnit::setType(unsigned int _type)
 {
+	setDirty();
 	type = _type;
 }
 
 
 
-Helicopter::Helicopter(const std::string & name):RescueUnit(name)
+Helicopter::Helicopter(const std::string & name, std::shared_ptr<Weather> weather):RescueUnit(name,weather)
 {
 	setType(CONST_TYPE_HELICOPTER);
 	setPickupTimeNormVisibility(3);
@@ -144,48 +203,9 @@ Helicopter::Helicopter(const std::string & name):RescueUnit(name)
 	setSpeed(72.2222222);
 }
 
-//#pragma optimize("",off)
-double Helicopter::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
-{
-	Position start = getPos();
-	double t = 0;
-
-	double crs = atan2(dest.y - start.y, dest.x - start.x);
-	double dist = sqrt(pow(dest.x - start.x, 2) + pow(dest.y - start.y, 2));
-
-	for (int step = 0; step <= (int)dist/DISTSTEP; step++) {
-		double distStep = (std::min)((double)DISTSTEP, dist - step * DISTSTEP);
-
-		Position act = {
-			start.x + step * DISTSTEP * (double)cos(crs),
-			start.y + step * DISTSTEP * (double)sin(crs)
-		};
-
-
-		//size_t ix = (size_t)((act.x-weather.getBounds().minx) / DISTSTEP);
-		//size_t iy = (size_t)((act.y-weather.getBounds().miny) / DISTSTEP);
-
-		//double wsp = weather.wspAt(scenario, ix, iy);
-		//double wd = weather.wdAt(scenario, ix, iy);
-		//std::tuple<double, double> wind = weather.windAt(scenario + t / 180, ix, iy);
-		std::tuple<double, double> wind = weather.windAt(scenario+t/180, act.x, act.y);
-		double wsp = std::get<0>(wind);
-		double wd = std::get<1>(wind);
-
-		double m = wd - fmod(M_PI_2 - crs, 2 * M_PI);
-		double gs = getSpeed()*sqrt(1 - pow(wsp, 2) / pow(getSpeed(), 2) * pow(sin(m), 2)) - wsp*cos(m);
-		t += distStep / (gs * 60);
-		
-		if (t > 120) {
-			t = std::numeric_limits<double>::max();
-			break;
-		}
-	}
-	return t;
-}
 
 //#pragma optimize("",off)
-ERV::ERV(const std::string & name) :RescueUnit(name)
+ERV::ERV(const std::string & name, std::shared_ptr<Weather> weather) :RescueUnit(name,weather)
 {	
 	setType(CONST_TYPE_ERV);
 	setPickupTimeNormVisibility(5);
@@ -198,39 +218,4 @@ ERV::ERV(const std::string & name) :RescueUnit(name)
 	//setMaxCapacity(6);
 }
 
-double ERV::getTravelTimeTo(Position dest, size_t scenario, Weather weather)
-{
-	Position start = getPos();
-	double t = 0;
-
-	double crs = atan2(dest.y - start.y, dest.x - start.x);
-	double dist = sqrt(pow(dest.x - start.x, 2) + pow(dest.y - start.y, 2));
-	for (int step = 0; step <= (int)dist / DISTSTEP; step++) {
-		double distStep = std::min((double)DISTSTEP, dist - step * DISTSTEP);
-
-		Position act = {
-			start.x + step * DISTSTEP * (float)cos(crs),
-			start.y + step * DISTSTEP * (float)sin(crs)
-		};
-		
-
-		//size_t ix = (size_t)((act.x - weather.getBounds().minx) / DISTSTEP);
-		//size_t iy = (size_t)((act.y - weather.getBounds().miny) / DISTSTEP);
-
-		double hs = weather.hsAt(scenario+t/180, act.x, act.y);
-
-		double coeff = (hs <= 3) ? (9.311444 - getSpeed()) / 3 : 
-									(9.054222 - getSpeed()) / 5;
-
-
-		double gs = getSpeed()+coeff*hs;
-		t += distStep / (gs * 60);
-
-		if (t > 120) {
-			t = std::numeric_limits<double>::max();
-			break;
-		}
-	}
-	return t;
-}
 

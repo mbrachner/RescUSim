@@ -16,7 +16,7 @@ Simulator::Simulator(std::shared_ptr<Weather> weather):weather(weather), resCap(
 		temporaryRUs.push_back(new RUList);
 	}*/
 	//if (resCap != nullptr) { delete resCap; }
-	generator = std::mt19937(123);
+	generator = std::mt19937();
 
 	
 	
@@ -135,20 +135,18 @@ void Simulator::simulateResponse()
 
 
 
-void Simulator::addStationaryRU(std::shared_ptr<Helicopter> ru)
+std::shared_ptr<Helicopter> Simulator::addStationaryRU(std::shared_ptr<Helicopter> ru)
 {
 	std::cout << "Adding " << (*ru).getName() << std::endl;
 	stationaryRUs.push_back(ru);
-
-	//__debugbreak();
+	return ru;
 }
 
-void Simulator::addStationaryRU(std::shared_ptr<ERV> ru)
+std::shared_ptr<ERV> Simulator::addStationaryRU(std::shared_ptr<ERV> ru)
 {
 	std::cout << "Adding " << (*ru).getName() << std::endl;
 	stationaryRUs.push_back(ru);
-
-	//__debugbreak();
+	return ru;
 }
 
 
@@ -178,13 +176,6 @@ void Simulator::addPoi(Position p)
 	pois.push_back(p);
 }
 
-void Simulator::initResTim() {
-	//resTim.resize(weather.getNumScenarios());
-	//for (int i = 0; i < weather.getNumScenarios(); i++) {
-	//	resTim[i].resize(pois.size());
-	//}
-	//resCap = new double[weather.getNumScenarios()*pois.size()];
-}
 
 size_t Simulator::getNumPois()
 {

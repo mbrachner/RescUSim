@@ -38,10 +38,18 @@ sim = RescUSimCpp.SimulatorCPU(weather)
 sim.addPoi(np.array(pois,dtype=np.float32));
 
 print "Adding rescue units..."
-ru1 = RescUSimCpp.Helicopter("Heli1").setPos(*hammerfest);
-sim.addStationaryRU(ru1);
-sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(*wisting));
-sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(*castberg));
+
+ru1 = sim.addStationaryRU(RescUSimCpp.Helicopter("Heli1").setPos(*hammerfest));
+ru2 = sim.addStationaryRU(RescUSimCpp.Helicopter("Heli2").setPos(*wisting));
+ru3 = sim.addStationaryRU(RescUSimCpp.ERV("ERV1").setPos(*castberg));
 sim.sample(10000);
+res = sim.simulateResponseSample();
+print res;
+ru1.setPos(723558.0, 345403.0);
+res = sim.simulateResponseSample();
+print res;
+res = sim.simulateResponseSample();
+print res;
+ru1.setPos(*hammerfest);
 res = sim.simulateResponseSample();
 print res;

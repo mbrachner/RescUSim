@@ -7,8 +7,8 @@ class SimulatorOpenCL :
 {
 public:
 	SimulatorOpenCL(std::shared_ptr<Weather> weather);
-	void addStationaryRU(std::shared_ptr<Helicopter> ru);
-	void addStationaryRU(std::shared_ptr<ERV> ru);
+	std::shared_ptr<Helicopter> addStationaryRU(std::shared_ptr<Helicopter> ru);
+	std::shared_ptr<ERV> addStationaryRU(std::shared_ptr<ERV> ru);
 	void addRU(std::shared_ptr<Helicopter> ru);
 	void addRU(std::shared_ptr<ERV> ru);
 	void transferWeather();

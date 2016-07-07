@@ -3,6 +3,10 @@
 #include "Bounds.h"
 #include <stdint.h>
 #include <tuple>
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+
+namespace py = pybind11;
 
 struct WeatherData {
 	//float wsp;
@@ -29,6 +33,7 @@ class Weather
 public:
 	Weather();
 	Weather(WeatherData *weatherData, size_t numScenarios, size_t dimX, size_t dimY, unsigned int resolution, Bounds bounds);
+	Weather(py::array_t<double, py::array::c_style | py::array::forcecast> wdata, double minx, double miny, unsigned int resolution);
 	BilinearWeights getBilinearWeights(double x, double y, double z);
 	size_t getIndex(size_t ix, size_t iy, size_t iz);
 	std::tuple<double, double> windAt(double scenario, double x, double y);
@@ -43,9 +48,11 @@ public:
 	size_t getDimY();
 	unsigned int getResolution();
 	Bounds getBounds();
+	void load(const std::string & name);
 	~Weather();
 
 private:
+	py::object infoWdata;
 	WeatherData *weatherData;
 	size_t dimX;
 	size_t dimY;

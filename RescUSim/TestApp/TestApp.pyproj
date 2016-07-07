@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>488d12ac-36f9-43e6-984e-47ba23a33d4c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>OpenCLTest.py</StartupFile>
+    <StartupFile>Meth.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -13,7 +13,7 @@
     <Name>TestApp</Name>
     <RootNamespace>TestApp</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,6 +24,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Meth.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="OpenCLTest.py">
       <SubType>Code</SubType>
     </Compile>

@@ -7,15 +7,16 @@ class SimulatorCPU :
 {
 public:
 	SimulatorCPU(std::shared_ptr<Weather> weather);
-	void addStationaryRU(std::shared_ptr<Helicopter> ru);
-	void addStationaryRU(std::shared_ptr<ERV> ru);
+	virtual void sample(size_t sampleSize) override;
+	std::shared_ptr<Helicopter> addStationaryRU(std::shared_ptr<Helicopter> ru) override;
+	std::shared_ptr<ERV> addStationaryRU(std::shared_ptr<ERV> ru) override;
+	void removeStationaryRU(std::shared_ptr<RescueUnit> ru);
 	void simulateResponseSample(double * res);
-	void addRU(std::shared_ptr<Helicopter> ru);
-	void addRU(std::shared_ptr<ERV> ru);
+	void initCache();
 	~SimulatorCPU();
 
 private:
-
+	std::vector<std::list<RUTime<RescueUnitCPU *>>> lRutVec;
 	std::list<RescueUnitCPU *> stationaryRUs;
 };
 

@@ -23,6 +23,8 @@ RescueUnitCPU::~RescueUnitCPU()
 HelicopterCPU::HelicopterCPU(std::shared_ptr<Helicopter> ru)
 {
 	data = ru;
+	generator = std::mt19937();
+	mtDis= std::lognormal_distribution<double>(1.17170354376, 0.875468737354);
 }
 
 double HelicopterCPU::getTravelTimeTo(Position dest, double scenario, std::shared_ptr<Weather> weather) {
@@ -147,6 +149,10 @@ double ERVCPU::getPickupTime(Position pos, double scenario, std::shared_ptr<Weat
 	}
 }
 
+double HelicopterCPU::getMobilizationTime() {
+	return 10+mtDis(generator);
+}
+
 double HelicopterCPU::getCoordOverhead(int interferingUnits)
 {
 	return (interferingUnits == 0) ? 1 : 2;
@@ -155,4 +161,8 @@ double HelicopterCPU::getCoordOverhead(int interferingUnits)
 double ERVCPU::getCoordOverhead(int interferingUnits)
 {
 	return 1;
+}
+
+double RescueUnitCPU::getMobilizationTime() {
+	return data->getMobilizationTime();
 }

@@ -1,6 +1,10 @@
 #include "Weather.h"
 #include <iostream>
 #include <iomanip>
+#include <H5Cpp.h>
+#ifndef H5_NO_NAMESPACE
+using namespace H5;
+#endif
 
 Weather::Weather() :bounds({ 0,0,0,0 }) {
 
@@ -10,6 +14,17 @@ Weather::Weather(WeatherData *weatherData, size_t numScenarios, size_t dimX, siz
 	:weatherData(weatherData), numScenarios(numScenarios), dimX(dimX), dimY(dimY), resolution(resolution), bounds(bounds)
 {
 	
+}
+
+Weather::Weather(py::array_t<double, py::array::c_style | py::array::forcecast> wdata, double minx, double miny, unsigned int resolution) : bounds(Bounds{ 0,0,0,0 })
+{
+	std::cout << "Refcount: " << wdata.ref_count() << std::endl;
+	infoWdata = py::object(wdata);
+	py::buffer_info infoWdata1 = wdata.request();
+	weatherData = (WeatherData *)infoWdata1.ptr;
+	//wdata.inc_ref();
+	std::cout << "Refcount: " << wdata.ref_count() << std::endl;
+	bounds = { minx, minx + infoWdata1.shape[1] * resolution, miny, miny + infoWdata1.shape[2] * resolution };
 }
 
 //#pragma optimize("",off)
@@ -55,7 +70,8 @@ std::tuple<double,double> Weather::windAt(double scenario, double x, double y) {
 	int ix = (int)(x - bounds.minx) / resolution;
 	int iy = (int)(y-bounds.miny)/resolution;
 	int iz = (int)scenario;
-	//printf("Windat %d %d %d\n", ix, iy, iz);
+	printf("Windat Param %f %f %f\n", scenario, x, y);
+	printf("Windat Index %d %d %d\n", iz, ix, iy);
 
 	//std::cout << (bounds.maxx - bounds.minx) / getDimX() << (bounds.maxy - bounds.miny) / getDimY() << std::endl;
 	//std::cout << std::setprecision(9);
@@ -91,11 +107,13 @@ std::tuple<double,double> Weather::windAt(double scenario, double x, double y) {
 
 float Weather::wdAt(double scenario, double x, double y) {
 	//return weatherData[(size_t)y + dimY*(size_t)x + dimX*dimY*(size_t)scenario].wsp;
+	throw 1;
 	return 0;
 }
 
 float Weather::wspAt(double scenario, double x, double y) {
 	//return weatherData[(size_t)y + dimY*(size_t)x + dimX*dimY*(size_t)scenario].wsp;
+	throw 1;
 	return 0;
 }
 
@@ -135,7 +153,9 @@ WeatherData * Weather::getWeatherDataPtr()
 	return weatherData;
 }
 
-size_t Weather::getNumScenarios() { return numScenarios; }
+size_t Weather::getNumScenarios() { 
+	//std::cout << "RefCount: " << wdaa
+	return numScenarios; }
 
 size_t Weather::getMemSize() {
 	return dimX*dimY*getNumScenarios()*sizeof(WeatherData);
@@ -159,6 +179,54 @@ unsigned int Weather::getResolution()
 Bounds Weather::getBounds()
 {
 	return bounds;
+}
+
+void Weather::load(const std::string& name)
+{
+	std::cout << "Loading " << name << std::endl;
+	H5File file(name, H5F_ACC_RDONLY);
+	DataSet dataset = file.openDataSet("weather_data");
+	std::cout << "Number of attributes: " << dataset.getNumAttrs() << std::endl;
+	dataset.openAttribute("resolution").read(PredType::NATIVE_UINT, &resolution);
+	//float bounds[4];
+	dataset.openAttribute("bounds").read(PredType::NATIVE_DOUBLE, &bounds);
+
+	std::cout << "Resolution: " << resolution << std::endl;
+	std::cout << "Bounds: " << bounds.minx << "," << bounds.miny << "," << bounds.maxx << "," << bounds.maxy << std::endl;
+	DataSpace ds = dataset.getSpace();
+	int dim = ds.getSimpleExtentNdims();
+	std::cout << "Dimensions: " << dim << std::endl;
+	hsize_t dims_out[3];
+	ds.getSimpleExtentDims(dims_out, NULL);
+	std::cout << "Size: " << dims_out[0] << "," << dims_out[1] << "," << dims_out[2] << std::endl;
+	dimX = dims_out[1];
+	dimY = dims_out[2];
+	numScenarios = dims_out[0];
+	std::cout << "Size: " << dims_out[0] * dims_out[1] * dims_out[2] << std::endl;
+	std::cout << "Dataset typeclass: " << dataset.getTypeClass() << "," << H5T_COMPOUND << std::endl;
+	std::cout << "Dataset size: " << dataset.getInMemDataSize() << "," << H5T_COMPOUND << std::endl;
+
+
+	CompType mtype2(sizeof(WeatherData));
+	mtype2.insertMember("wind_xcomp", HOFFSET(WeatherData, wind_xcomp), PredType::NATIVE_FLOAT);
+	mtype2.insertMember("wind_ycomp", HOFFSET(WeatherData, wind_ycomp), PredType::NATIVE_FLOAT);
+	mtype2.insertMember("hs", HOFFSET(WeatherData, hs), PredType::NATIVE_FLOAT);
+	mtype2.insertMember("light", HOFFSET(WeatherData, light), PredType::NATIVE_CHAR);
+	//WeatherData wd[106938134];
+
+	try {
+		weatherData = (WeatherData *)malloc(ds.getSimpleExtentNpoints() * sizeof(WeatherData));
+		dataset.read(weatherData, mtype2);
+		std::cout << "Finished" << std::endl;
+
+
+		//size_t ix = i1*dims_out[1] * dims_out[2] + i2 * dims_out[2] + i3;
+		//printf("%f %f %f %d\n", wd[ix].wind_xcomp, wd[ix].wind_ycomp, wd[ix].hs, wd[ix].light);
+	}
+	catch (int e)
+	{
+		std::cout << "An exception occurred. Exception Nr. " << e << '\n';
+	}
 }
 
 
